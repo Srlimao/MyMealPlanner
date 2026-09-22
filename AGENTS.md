@@ -35,8 +35,8 @@ Group code strictly by feature domain inside `src/features/`:
   - Colors: Emerald (`emerald-500`) for primary positive status; Sky/Amber for metrics; Rose for warnings.
 - Colocate markup, logic, and Tailwind classes in component files. Avoid separate CSS files.
 
-### 4. Resilient Gemini API Integration
-- Primary models: `gemini-2.5-flash`, `gemini-2.0-flash`, `gemini-2.0-flash-lite`, `gemini-1.5-flash`.
+### 4. Resilient Gemini & Gemma API Integration
+- Supported models: `gemini-3.5-flash-lite`, `gemini-3.1-flash-lite`, `gemini-2.5-flash`, `gemini-2.0-flash`, `gemini-2.0-flash-lite`, `gemma-4-26b-a4b-it`, `gemini-1.5-flash`.
 - Always handle HTTP 429 quota exhaustion with automatic failover to the next Flash model in sequence.
 - Support `import.meta.env.VITE_GEMINI_API_KEY` with client-side override in `localStorage`.
 - Discard images after nutritional analysis to keep database payload small.

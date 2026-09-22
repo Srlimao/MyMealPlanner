@@ -1,9 +1,12 @@
 import { DailyTargets } from './nutrition';
 
 export type GeminiModelId =
+  | 'gemini-3.5-flash-lite'
+  | 'gemini-3.1-flash-lite'
   | 'gemini-2.5-flash'
   | 'gemini-2.0-flash'
   | 'gemini-2.0-flash-lite'
+  | 'gemma-4-26b-a4b-it'
   | 'gemini-1.5-flash';
 
 export interface ModelOption {
@@ -15,10 +18,22 @@ export interface ModelOption {
 
 export const AVAILABLE_MODELS: ModelOption[] = [
   {
+    id: 'gemini-3.5-flash-lite',
+    name: 'Gemini 3.5 Flash-Lite',
+    badge: 'Ultra Fast',
+    description: 'Next-gen high-efficiency, lowest latency multimodal model.',
+  },
+  {
+    id: 'gemini-3.1-flash-lite',
+    name: 'Gemini 3.1 Flash-Lite',
+    badge: 'Efficient',
+    description: 'High-throughput, cost-effective multimodal model.',
+  },
+  {
     id: 'gemini-2.5-flash',
     name: 'Gemini 2.5 Flash',
     badge: 'Fast & Smart',
-    description: 'Latest flagship multimodal flash model.',
+    description: 'Flagship multimodal model with deep reasoning.',
   },
   {
     id: 'gemini-2.0-flash',
@@ -30,7 +45,13 @@ export const AVAILABLE_MODELS: ModelOption[] = [
     id: 'gemini-2.0-flash-lite',
     name: 'Gemini 2.0 Flash-Lite',
     badge: 'Lightweight',
-    description: 'Lowest latency & token consumption.',
+    description: 'Fast token consumption and low latency.',
+  },
+  {
+    id: 'gemma-4-26b-a4b-it',
+    name: 'Gemma 4 26B',
+    badge: 'Open MoE',
+    description: 'DeepMind open-weights multimodal Mixture-of-Experts model.',
   },
   {
     id: 'gemini-1.5-flash',

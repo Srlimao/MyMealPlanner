@@ -2,8 +2,9 @@ import React, { useState, useRef, useEffect } from 'react';
 import { X, Send, Bot, User, Loader2, Sparkles } from 'lucide-react';
 import { DailyLog, NutritionPlan } from '../../shared/types/nutrition';
 import { UserSettings } from '../../shared/types/settings';
-import { buildAdvisorSystemPrompt } from './advisorPrompt';
+import { buildAdvisorSystemPrompt, formatDailyConsumptionContext } from './advisorPrompt';
 import { geminiService } from '../../shared/services/geminiService';
+import { MarkdownViewer } from '../../shared/components/MarkdownViewer';
 
 interface Message {
   id: string;
@@ -73,11 +74,8 @@ export const AdvisorChatDrawer: React.FC<AdvisorChatDrawerProps> = ({
 
     try {
       const systemPrompt = buildAdvisorSystemPrompt(nutritionPlan, settings.language);
-      const contextualPrompt = `Contexto do diário de hoje:\n${
-        todayLog?.meals.length
-          ? todayLog.meals.map((m) => `- ${m.name} (${m.totals.calories} kcal)`).join('\n')
-          : 'Nenhuma refeição registada hoje ainda.'
-      }\nÁgua consumida: ${todayLog?.habits.waterMl || 0}ml.\n\nPergunta do Willian:\n${userText}`;
+      const dailyContext = formatDailyConsumptionContext(todayLog, settings.targets);
+      const contextualPrompt = `${dailyContext}\n\nPergunta do Willian:\n${userText}`;
 
       const response = await geminiService.generateContent(
         contextualPrompt,
@@ -143,11 +141,15 @@ export const AdvisorChatDrawer: React.FC<AdvisorChatDrawerProps> = ({
               <div
                 className={`max-w-[82%] rounded-2xl px-3.5 py-2.5 text-xs leading-relaxed ${
                   m.sender === 'user'
-                    ? 'bg-emerald-600 text-white rounded-br-xs'
-                    : 'bg-neutral-950 border border-neutral-800/80 text-neutral-200 rounded-bl-xs whitespace-pre-line'
+                    ? 'bg-emerald-600 text-white rounded-br-xs whitespace-pre-line'
+                    : 'bg-neutral-950 border border-neutral-800/80 text-neutral-200 rounded-bl-xs'
                 }`}
               >
-                {m.text}
+                {m.sender === 'user' ? (
+                  m.text
+                ) : (
+                  <MarkdownViewer content={m.text} />
+                )}
                 <span
                   className={`block text-[9px] mt-1 text-right ${
                     m.sender === 'user' ? 'text-emerald-200' : 'text-neutral-500'

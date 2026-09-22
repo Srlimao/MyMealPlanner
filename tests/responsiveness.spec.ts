@@ -80,6 +80,11 @@ test.describe('Eating Helper - Responsive Design & Overflow Verification', () =>
     const settingsTitle = page.locator('h2:has-text("Configurações"), h2:has-text("Settings")');
     await expect(settingsTitle).toBeVisible();
 
+    // Verify newly added models are rendered in model selector
+    await expect(page.locator('button:has-text("Gemini 3.5 Flash-Lite")')).toBeVisible();
+    await expect(page.locator('button:has-text("Gemini 3.1 Flash-Lite")')).toBeVisible();
+    await expect(page.locator('button:has-text("Gemma 4 26B")')).toBeVisible();
+
     const isOverflowing = await page.evaluate(() => {
       return document.documentElement.scrollWidth > window.innerWidth;
     });

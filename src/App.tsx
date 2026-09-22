@@ -19,13 +19,11 @@ type Tab = 'dashboard' | 'plan' | 'metrics';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<Tab>('dashboard');
-  const [currentDate, setCurrentDate] = useState<string>(
-    new Date().toISOString().split('T')[0]
-  );
+  const [currentDate, setCurrentDate] = useState<string>(() => new Date().toISOString().split('T')[0]);
   const [settings, setSettings] = useState<UserSettings>(jsonDbService.getUserSettings());
   const [nutritionPlan, setNutritionPlan] = useState<NutritionPlan>(DEFAULT_NUTRITION_PLAN);
   const [dailyLog, setDailyLog] = useState<DailyLog>({
-    date: currentDate,
+    date: new Date().toISOString().split('T')[0],
     meals: [],
     dayTotals: { calories: 0, protein: 0, carbs: 0, fat: 0 },
     habits: { waterMl: 0, sodaCount: 0 },
@@ -271,7 +269,6 @@ export default function App() {
         settings={settings}
         onSave={handleUpdateSettings}
       />
-
       <AdvisorChatDrawer
         isOpen={isAdvisorOpen}
         onClose={() => setIsAdvisorOpen(false)}
@@ -279,14 +276,12 @@ export default function App() {
         nutritionPlan={nutritionPlan}
         settings={settings}
       />
-
       <QuickLogModal
         isOpen={isQuickLogOpen}
         onClose={() => setIsQuickLogOpen(false)}
         onParsedSuccess={(parsed) => setReviewMealData(parsed)}
         settings={settings}
       />
-
       {reviewMealData && (
         <MealReviewModal
           isOpen={true}

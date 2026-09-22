@@ -10,6 +10,7 @@ import {
   buildNextMealSuggestionPrompt,
 } from './advisorPrompt';
 import { geminiService } from '../../shared/services/geminiService';
+import { MarkdownViewer } from '../../shared/components/MarkdownViewer';
 
 interface NextMealCardProps {
   todayLog: DailyLog | null;
@@ -41,7 +42,8 @@ export const NextMealCard: React.FC<NextMealCardProps> = ({
       const prompt = buildNextMealSuggestionPrompt(
         currentMealInfo.type,
         todayLog,
-        nutritionPlan
+        nutritionPlan,
+        settings.targets
       );
       const systemPrompt = buildAdvisorSystemPrompt(nutritionPlan, settings.language);
 
@@ -104,8 +106,8 @@ export const NextMealCard: React.FC<NextMealCardProps> = ({
       {/* Suggestion Content Output */}
       {suggestion && (
         <div className="mt-3.5 space-y-3 animate-fade-in">
-          <div className="p-3.5 rounded-xl bg-neutral-950/80 border border-neutral-800 text-xs text-neutral-300 leading-relaxed whitespace-pre-line font-sans">
-            {suggestion}
+          <div className="p-3.5 rounded-xl bg-neutral-950/80 border border-neutral-800 text-xs text-neutral-300 leading-relaxed">
+            <MarkdownViewer content={suggestion} />
           </div>
 
           <div className="flex flex-wrap items-center justify-between gap-2">
