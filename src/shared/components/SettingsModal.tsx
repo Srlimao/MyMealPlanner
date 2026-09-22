@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Key, Cpu, Check, Eye, EyeOff } from 'lucide-react';
+import { X, Key, Cpu, Check, Eye, EyeOff, Smartphone, Download } from 'lucide-react';
 import { UserSettings, AVAILABLE_MODELS } from '../types/settings';
 import { TRANSLATIONS } from '../i18n/translations';
 
@@ -8,6 +8,9 @@ interface SettingsModalProps {
   onClose: () => void;
   settings: UserSettings;
   onSave: (settings: UserSettings) => void;
+  canInstall?: boolean;
+  isStandalone?: boolean;
+  onInstallApp?: () => void;
 }
 
 export const SettingsModal: React.FC<SettingsModalProps> = ({
@@ -15,6 +18,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
   onClose,
   settings,
   onSave,
+  canInstall,
+  isStandalone,
+  onInstallApp,
 }) => {
   const [formData, setFormData] = useState<UserSettings>(settings);
   const [showKey, setShowKey] = useState(false);
@@ -189,6 +195,38 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-2.5 py-1.5 text-xs text-neutral-200 mt-1"
                 />
               </div>
+            </div>
+          </div>
+
+          {/* Mobile & PWA Installation */}
+          <div className="bg-neutral-950 p-3.5 rounded-xl border border-neutral-800 space-y-2">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+              <div className="space-y-0.5">
+                <span className="text-xs font-semibold text-neutral-200 flex items-center gap-1.5">
+                  <Smartphone className="w-3.5 h-3.5 text-emerald-400" />
+                  Aplicação Móvel (PWA)
+                </span>
+                <p className="text-[11px] text-neutral-500">
+                  {isStandalone
+                    ? 'Aplicação já instalada e a correr em modo nativo.'
+                    : 'Instale a aplicação no seu ecrã inicial para acesso rápido e utilização sem navegador.'}
+                </p>
+              </div>
+
+              {isStandalone ? (
+                <span className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[11px] font-semibold self-start sm:self-auto shrink-0">
+                  <Check className="w-3.5 h-3.5" /> Instalada
+                </span>
+              ) : (
+                <button
+                  type="button"
+                  onClick={onInstallApp}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold shadow transition-all active:scale-95 self-start sm:self-auto shrink-0"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  <span>{canInstall ? 'Instalar App' : 'Como Instalar'}</span>
+                </button>
+              )}
             </div>
           </div>
         </div>

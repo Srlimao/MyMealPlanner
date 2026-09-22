@@ -7,6 +7,7 @@ import { DEFAULT_NUTRITION_PLAN } from './shared/data/defaultPlan';
 import { TRANSLATIONS } from './shared/i18n/translations';
 import { Header } from './shared/components/Header';
 import { SettingsModal } from './shared/components/SettingsModal';
+import { InstallPromptModal } from './shared/components/InstallPromptModal';
 import { AdvisorChatDrawer } from './features/advisor/AdvisorChatDrawer';
 import { QuickLogModal } from './features/logger/QuickLogModal';
 import { MealReviewModal } from './features/logger/MealReviewModal';
@@ -14,21 +15,24 @@ import { DayView } from './features/dashboard/DayView';
 import { PlanViewer } from './features/plan/PlanViewer';
 import { WeeklyOverview } from './features/metrics/WeeklyOverview';
 import { HistoryList } from './features/metrics/HistoryList';
+import { usePWAInstall } from './shared/hooks/usePWAInstall';
 
 type Tab = 'dashboard' | 'plan' | 'metrics';
+
+const emptyLog = (date: string): DailyLog => ({
+  date,
+  meals: [],
+  dayTotals: { calories: 0, protein: 0, carbs: 0, fat: 0 },
+  habits: { waterMl: 0, sodaCount: 0 },
+  updatedAt: new Date().toISOString(),
+});
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<Tab>('dashboard');
   const [currentDate, setCurrentDate] = useState<string>(() => new Date().toISOString().split('T')[0]);
   const [settings, setSettings] = useState<UserSettings>(jsonDbService.getUserSettings());
   const [nutritionPlan, setNutritionPlan] = useState<NutritionPlan>(DEFAULT_NUTRITION_PLAN);
-  const [dailyLog, setDailyLog] = useState<DailyLog>({
-    date: new Date().toISOString().split('T')[0],
-    meals: [],
-    dayTotals: { calories: 0, protein: 0, carbs: 0, fat: 0 },
-    habits: { waterMl: 0, sodaCount: 0 },
-    updatedAt: new Date().toISOString(),
-  });
+  const [dailyLog, setDailyLog] = useState<DailyLog>(() => emptyLog(new Date().toISOString().split('T')[0]));
   const [recentLogs, setRecentLogs] = useState<DailyLog[]>([]);
   const [isOnline, setIsOnline] = useState<boolean>(navigator.onLine);
 
@@ -38,6 +42,7 @@ export default function App() {
   const [isQuickLogOpen, setIsQuickLogOpen] = useState(false);
   const [reviewMealData, setReviewMealData] = useState<Partial<MealEntry> | null>(null);
 
+  const { canInstall, isStandalone, isIOS, showIOSModal, setShowIOSModal, promptInstall } = usePWAInstall();
   const t = TRANSLATIONS[settings.language];
 
   // Initial load
@@ -63,13 +68,7 @@ export default function App() {
       if (loaded) {
         setDailyLog(loaded);
       } else {
-        setDailyLog({
-          date: currentDate,
-          meals: [],
-          dayTotals: { calories: 0, protein: 0, carbs: 0, fat: 0 },
-          habits: { waterMl: 0, sodaCount: 0 },
-          updatedAt: new Date().toISOString(),
-        });
+        setDailyLog(emptyLog(currentDate));
       }
     });
     return () => {
@@ -80,23 +79,22 @@ export default function App() {
   const handleUpdateDailyLog = async (newLog: DailyLog) => {
     setDailyLog(newLog);
     await jsonDbService.saveDailyLog(newLog);
-    const updatedRecents = await jsonDbService.getRecentLogs(14);
-    setRecentLogs(updatedRecents);
+    setRecentLogs(await jsonDbService.getRecentLogs(14));
   };
 
-  const handleUpdatePlan = async (updatedPlan: NutritionPlan) => {
-    setNutritionPlan(updatedPlan);
-    await jsonDbService.saveNutritionPlan(updatedPlan);
+  const handleUpdatePlan = async (p: NutritionPlan) => {
+    setNutritionPlan(p);
+    await jsonDbService.saveNutritionPlan(p);
   };
 
-  const handleUpdateSettings = async (newSettings: UserSettings) => {
-    setSettings(newSettings);
-    await jsonDbService.saveUserSettings(newSettings);
+  const handleUpdateSettings = async (s: UserSettings) => {
+    setSettings(s);
+    await jsonDbService.saveUserSettings(s);
   };
 
   const handleConfirmMeal = async (newMeal: MealEntry) => {
-    const updatedMeals = [...dailyLog.meals, newMeal];
-    const updatedTotals = updatedMeals.reduce(
+    const meals = [...dailyLog.meals, newMeal];
+    const dayTotals = meals.reduce(
       (acc, m) => ({
         calories: acc.calories + m.totals.calories,
         protein: acc.protein + m.totals.protein,
@@ -105,16 +103,8 @@ export default function App() {
       }),
       { calories: 0, protein: 0, carbs: 0, fat: 0 }
     );
-
-    const newDailyLog: DailyLog = {
-      ...dailyLog,
-      meals: updatedMeals,
-      dayTotals: updatedTotals,
-      updatedAt: new Date().toISOString(),
-    };
-
     setReviewMealData(null);
-    await handleUpdateDailyLog(newDailyLog);
+    await handleUpdateDailyLog({ ...dailyLog, meals, dayTotals, updatedAt: new Date().toISOString() });
   };
 
   const handleQuickLogSuggestion = (suggestionText: string, mealType: MealType) => {
@@ -122,15 +112,7 @@ export default function App() {
       name: `Opção sugerida para ${mealType}`,
       mealType,
       items: [
-        {
-          id: `item_${Date.now()}`,
-          name: 'Opção do plano recomendada',
-          portion: '1 porção',
-          calories: 350,
-          protein: 25,
-          carbs: 35,
-          fat: 8,
-        },
+        { id: `item_${Date.now()}`, name: 'Opção do plano recomendada', portion: '1 porção', calories: 350, protein: 25, carbs: 35, fat: 8 },
       ],
       notes: suggestionText.slice(0, 150),
       adheresToPlateRule: true,
@@ -146,6 +128,8 @@ export default function App() {
         onOpenSettings={() => setIsSettingsOpen(true)}
         onOpenAdvisorChat={() => setIsAdvisorOpen(true)}
         isOnline={isOnline}
+        canInstall={canInstall}
+        onInstallApp={promptInstall}
       />
 
       {/* Main Container */}
@@ -268,6 +252,15 @@ export default function App() {
         onClose={() => setIsSettingsOpen(false)}
         settings={settings}
         onSave={handleUpdateSettings}
+        canInstall={canInstall}
+        isStandalone={isStandalone}
+        onInstallApp={promptInstall}
+      />
+      <InstallPromptModal
+        isOpen={showIOSModal}
+        onClose={() => setShowIOSModal(false)}
+        isIOS={isIOS}
+        language={settings.language}
       />
       <AdvisorChatDrawer
         isOpen={isAdvisorOpen}
