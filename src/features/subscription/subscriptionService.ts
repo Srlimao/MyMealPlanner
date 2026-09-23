@@ -30,6 +30,36 @@ class SubscriptionService {
     return 'free';
   }
 
+  async syncUserTierRemote(uidOverride?: string): Promise<UserTier> {
+    const uid = uidOverride || jsonDbService.getUserId();
+    if (!uid || uid.startsWith('e2e_')) return this.getUserTier();
+
+    try {
+      const remote = await jsonDbService.getDocument<{ tier?: UserTier }>('eating_users', uid);
+      if (remote?.tier && (remote.tier === 'free' || remote.tier === 'starter' || remote.tier === 'pro')) {
+        const local = this.getUserTier();
+        if (local !== remote.tier) {
+          const key = this.getCacheKey('tier');
+          localStorage.setItem(key, remote.tier);
+
+          // Update active model
+          const settings = jsonDbService.getUserSettings();
+          const targetModel = TIER_CONFIGS[remote.tier].defaultModel;
+          if (settings.activeModel !== targetModel) {
+            jsonDbService.saveUserSettings({
+              ...settings,
+              activeModel: targetModel,
+            });
+          }
+        }
+        return remote.tier;
+      }
+    } catch {
+      // Offline fallback
+    }
+    return this.getUserTier();
+  }
+
   setUserTier(tier: UserTier): void {
     if (typeof window === 'undefined') return;
     const key = this.getCacheKey('tier');
@@ -42,6 +72,19 @@ class SubscriptionService {
       jsonDbService.saveUserSettings({
         ...settings,
         activeModel: targetModel,
+      });
+    }
+
+    // Remote persistence to eating_users collection on db.dunhas.com
+    const uid = jsonDbService.getUserId();
+    if (uid && !uid.startsWith('e2e_')) {
+      jsonDbService.getDocument<Record<string, unknown>>('eating_users', uid).then((existing) => {
+        jsonDbService.upsertDocument('eating_users', uid, {
+          ...(existing || {}),
+          uid,
+          tier,
+          updatedAt: new Date().toISOString(),
+        });
       });
     }
   }

@@ -216,7 +216,7 @@ class JsonDbService {
   }
 
   // --- LOW LEVEL HTTP + QUEUE ---
-  private async getDocument<T>(collection: string, id: string): Promise<T | null> {
+  async getDocument<T>(collection: string, id: string): Promise<T | null> {
     const response = await fetch(`${DB_BASE_URL}/${collection}/${id}`, {
       headers: { 'x-api-key': DB_API_KEY },
     });
@@ -225,7 +225,7 @@ class JsonDbService {
     return json?.data ?? null;
   }
 
-  private async upsertDocument(collection: string, id: string, data: unknown): Promise<void> {
+  async upsertDocument(collection: string, id: string, data: unknown): Promise<void> {
     try {
       const response = await fetch(`${DB_BASE_URL}/${collection}/${id}`, {
         method: 'POST',
@@ -238,6 +238,19 @@ class JsonDbService {
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
     } catch {
       this.enqueueSync({ collection, id, data, timestamp: Date.now() });
+    }
+  }
+
+  async listDocuments<T>(collection: string, limit = 50): Promise<T[]> {
+    try {
+      const res = await fetch(`${DB_BASE_URL}/${collection}?limit=${limit}`, {
+        headers: { 'x-api-key': DB_API_KEY },
+      });
+      if (!res.ok) return [];
+      const json = await res.json();
+      return Array.isArray(json?.results) ? json.results.map((r: { data: T }) => r.data) : [];
+    } catch {
+      return [];
     }
   }
 

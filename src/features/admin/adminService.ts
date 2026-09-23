@@ -1,6 +1,7 @@
 import { AdminUserSummary, FinancialSummary } from './types';
 import { UserTier, TIER_CONFIGS, UserUsageRecord } from '../subscription/types';
 import { User } from '../auth/authService';
+import { jsonDbService } from '../../shared/services/jsonDbService';
 
 const DEFAULT_ADMIN_EMAILS = [
   'admin@dunhas.com',
@@ -28,18 +29,16 @@ class AdminService {
   }
 
   async recordUserPresence(user: User, currentTier: UserTier = 'free'): Promise<void> {
-    if (typeof window === 'undefined' || !user?.uid) return;
+    if (typeof window === 'undefined' || !user?.uid || user.uid.startsWith('e2e_')) return;
 
     const users = this.getLocalUsers();
     const nowIso = new Date().toISOString();
     const existingIdx = users.findIndex((u) => u.uid === user.uid);
 
-    // Get live usage from local cache
     let liveChats = 0;
     let livePhotos = 0;
     try {
-      const usageKey = `eh_${user.uid}_usage`;
-      const usageRaw = localStorage.getItem(usageKey);
+      const usageRaw = localStorage.getItem(`eh_${user.uid}_usage`);
       if (usageRaw) {
         const parsed: UserUsageRecord = JSON.parse(usageRaw);
         liveChats = parsed.chatCountToday || 0;
@@ -49,8 +48,9 @@ class AdminService {
       // ignore
     }
 
+    let summary: AdminUserSummary;
     if (existingIdx >= 0) {
-      users[existingIdx] = {
+      summary = {
         ...users[existingIdx],
         email: user.email || users[existingIdx].email,
         displayName: user.displayName || users[existingIdx].displayName,
@@ -60,8 +60,9 @@ class AdminService {
         photosToday: livePhotos,
         lastActive: nowIso,
       };
+      users[existingIdx] = summary;
     } else {
-      users.push({
+      summary = {
         uid: user.uid,
         email: user.email || 'sem-email@usuario.com',
         displayName: user.displayName || user.email?.split('@')[0] || 'Novo Usuário',
@@ -71,16 +72,41 @@ class AdminService {
         photosToday: livePhotos,
         createdAt: nowIso,
         lastActive: nowIso,
-      });
+      };
+      users.push(summary);
     }
-
     this.saveLocalUsers(users);
+
+    // Sync to remote db.dunhas.com
+    try {
+      const remote = await jsonDbService.getDocument<AdminUserSummary>('eating_users', user.uid);
+      const merged: AdminUserSummary = {
+        ...summary,
+        tier: remote?.tier || currentTier,
+        lastActive: nowIso,
+      };
+      if (remote?.tier && remote.tier !== currentTier) {
+        localStorage.setItem(`eh_${user.uid}_tier`, remote.tier);
+      }
+      await jsonDbService.upsertDocument('eating_users', user.uid, merged);
+    } catch {
+      jsonDbService.upsertDocument('eating_users', user.uid, summary);
+    }
   }
 
   async fetchAllUsers(): Promise<AdminUserSummary[]> {
+    try {
+      const remoteUsers = await jsonDbService.listDocuments<AdminUserSummary>('eating_users', 100);
+      if (remoteUsers.length > 0) {
+        this.saveLocalUsers(remoteUsers);
+        return remoteUsers;
+      }
+    } catch {
+      // Offline fallback
+    }
+
     const users = this.getLocalUsers();
     if (users.length === 0) {
-      // Seed with default initial data for demo/testing
       const seeded = this.getSeededUsers();
       this.saveLocalUsers(seeded);
       return seeded;
@@ -91,15 +117,36 @@ class AdminService {
   async overrideUserTier(uid: string, newTier: UserTier): Promise<void> {
     const users = this.getLocalUsers();
     const idx = users.findIndex((u) => u.uid === uid);
+    let targetUser: AdminUserSummary | undefined;
     if (idx >= 0) {
       users[idx].tier = newTier;
       users[idx].lastActive = new Date().toISOString();
+      targetUser = users[idx];
       this.saveLocalUsers(users);
     }
 
-    // Also update target user's local key directly
     if (typeof window !== 'undefined') {
       localStorage.setItem(`eh_${uid}_tier`, newTier);
+    }
+
+    try {
+      const existing = await jsonDbService.getDocument<AdminUserSummary>('eating_users', uid);
+      const updated: AdminUserSummary = {
+        ...(existing || targetUser || {
+          uid,
+          email: 'usuario@dunhas.com',
+          displayName: 'Usuário',
+          chatsToday: 0,
+          photosToday: 0,
+          createdAt: new Date().toISOString(),
+          lastActive: new Date().toISOString(),
+        }),
+        tier: newTier,
+        lastActive: new Date().toISOString(),
+      };
+      await jsonDbService.upsertDocument('eating_users', uid, updated);
+    } catch (e) {
+      console.warn('Failed to sync tier override to remote db', e);
     }
   }
 
@@ -125,6 +172,20 @@ class AdminService {
         updatedAt: new Date().toISOString(),
       };
       localStorage.setItem(`eh_${uid}_usage`, JSON.stringify(resetUsage));
+    }
+
+    try {
+      const existing = await jsonDbService.getDocument<AdminUserSummary>('eating_users', uid);
+      if (existing) {
+        await jsonDbService.upsertDocument('eating_users', uid, {
+          ...existing,
+          chatsToday: 0,
+          photosToday: 0,
+          lastActive: new Date().toISOString(),
+        });
+      }
+    } catch {
+      // offline fallback
     }
   }
 

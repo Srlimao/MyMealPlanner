@@ -28,15 +28,23 @@ export const SubscriptionProvider: React.FC<{ children: React.ReactNode }> = ({ 
   const [usage, setUsageState] = useState<UserUsageRecord>(() => subscriptionService.getUsage());
   const [isTierModalOpen, setIsTierModalOpen] = useState(false);
 
-  // Sync state on mount and window focus
+  // Sync state on mount, window focus, and remote db check
   useEffect(() => {
-    const refresh = () => {
+    let isMounted = true;
+    const refresh = async () => {
       setTierState(subscriptionService.getUserTier());
       setUsageState(subscriptionService.getUsage());
+      const remoteTier = await subscriptionService.syncUserTierRemote();
+      if (isMounted && remoteTier) {
+        setTierState(remoteTier);
+      }
     };
     refresh();
     window.addEventListener('focus', refresh);
-    return () => window.removeEventListener('focus', refresh);
+    return () => {
+      isMounted = false;
+      window.removeEventListener('focus', refresh);
+    };
   }, []);
 
   const handleSetTier = useCallback((newTier: UserTier) => {

@@ -49,21 +49,21 @@ export const Header: React.FC<HeaderProps> = ({
     <header className="sticky top-0 z-30 w-full bg-neutral-950/85 backdrop-blur-md border-b border-neutral-800/80 px-3 sm:px-6 py-2.5 sm:py-3 transition-colors">
       <div className="max-w-5xl mx-auto flex items-center justify-between gap-2">
         {/* Logo & App Name */}
-        <div className="flex items-center gap-2.5 min-w-0">
+        <div className="flex items-center gap-2 sm:gap-2.5 min-w-0 shrink">
           <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-400 flex items-center justify-center shadow-lg shadow-emerald-950/40 shrink-0">
             <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 text-neutral-950" />
           </div>
           <div className="min-w-0">
-            <h1 className="text-sm sm:text-base font-bold text-neutral-100 tracking-tight leading-none truncate">
+            <h1 className="text-xs sm:text-base font-bold text-neutral-100 tracking-tight leading-none truncate">
               {t.appTitle}
             </h1>
-            <div className="flex items-center gap-1.5 mt-0.5">
+            <div className="flex items-center gap-1 sm:gap-1.5 mt-0.5">
               <span
-                className={`w-1.5 h-1.5 rounded-full ${
+                className={`w-1.5 h-1.5 rounded-full shrink-0 ${
                   isOnline ? 'bg-emerald-500 animate-pulse' : 'bg-amber-500'
                 }`}
               />
-              <span className="text-[10px] text-neutral-400 tracking-wide uppercase font-medium">
+              <span className="text-[9px] sm:text-[10px] text-neutral-400 tracking-wide uppercase font-medium truncate">
                 {isOnline ? 'db.dunhas.com' : 'offline'}
               </span>
             </div>
