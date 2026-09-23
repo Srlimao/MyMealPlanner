@@ -3,6 +3,7 @@ import { Sparkles, Settings, Globe, Bot, Download } from 'lucide-react';
 import { UserSettings, AVAILABLE_MODELS, GeminiModelId } from '../types/settings';
 import { TRANSLATIONS } from '../i18n/translations';
 import { SUPPORTED_LANGUAGES, getLanguageInfo } from '../i18n';
+import { UserProfileDropdown } from '../../features/auth/UserProfileDropdown';
 
 interface HeaderProps {
   settings: UserSettings;
@@ -127,6 +128,13 @@ export const Header: React.FC<HeaderProps> = ({
           >
             <Settings className="w-4 h-4" />
           </button>
+
+          {/* User Profile & Account Dropdown */}
+          <UserProfileDropdown
+            lang={settings.language}
+            hasGeminiKey={Boolean(settings.geminiApiKey)}
+            onOpenSettings={onOpenSettings}
+          />
         </div>
       </div>
     </header>

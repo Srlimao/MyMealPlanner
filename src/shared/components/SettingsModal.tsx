@@ -3,6 +3,7 @@ import { X, Key, Cpu, Check, Eye, EyeOff, Smartphone, Download, Globe } from 'lu
 import { UserSettings, AVAILABLE_MODELS } from '../types/settings';
 import { TRANSLATIONS } from '../i18n/translations';
 import { SUPPORTED_LANGUAGES } from '../i18n';
+import { AccountSettingsCard } from './AccountSettingsCard';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -58,6 +59,9 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
         {/* Scrollable Body */}
         <div className="p-5 space-y-5 overflow-y-auto">
+          {/* Account Profile Section */}
+          <AccountSettingsCard lang={formData.language} onLoggedOut={onClose} />
+
           {/* Language Selector */}
           <div className="space-y-1.5">
             <label className="text-xs font-semibold text-neutral-300 flex items-center gap-1.5">

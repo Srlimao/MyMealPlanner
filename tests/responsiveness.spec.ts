@@ -2,6 +2,18 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Eating Helper - Responsive Design & Overflow Verification', () => {
   test.beforeEach(async ({ page }) => {
+    // Inject mock user for authenticated dashboard testing
+    await page.addInitScript(() => {
+      localStorage.setItem(
+        'eh_e2e_user',
+        JSON.stringify({
+          uid: 'e2e_test_user',
+          email: 'test@example.com',
+          displayName: 'Test User',
+          providerData: [{ providerId: 'password' }],
+        })
+      );
+    });
     // Navigate to local dev server
     await page.goto('/');
     // Wait for the app container to mount

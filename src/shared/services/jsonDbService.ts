@@ -5,13 +5,6 @@ import { DEFAULT_NUTRITION_PLAN } from '../data/defaultPlan';
 const DB_BASE_URL = 'https://db.dunhas.com/api';
 const DB_API_KEY = '1b4a19fdc1eda3f481543b0f25b01ab428e0f6467ad7c9c1';
 
-const CACHE_KEYS = {
-  SETTINGS: 'eh_settings',
-  ACTIVE_PLAN: 'eh_active_plan',
-  LOG_PREFIX: 'eh_log_',
-  PENDING_SYNCS: 'eh_pending_syncs',
-};
-
 interface SyncItem {
   collection: string;
   id: string;
@@ -21,6 +14,7 @@ interface SyncItem {
 
 class JsonDbService {
   private isOnline: boolean = typeof navigator !== 'undefined' ? navigator.onLine : true;
+  private userId: string | null = null;
 
   constructor() {
     if (typeof window !== 'undefined') {
@@ -34,14 +28,31 @@ class JsonDbService {
     }
   }
 
+  setUserId(uid: string | null) {
+    this.userId = uid;
+  }
+
+  getUserId(): string | null {
+    return this.userId;
+  }
+
+  private getCollection(name: string): string {
+    return this.userId ? `user_${this.userId}_${name}` : name;
+  }
+
+  private getCacheKey(key: string): string {
+    return this.userId ? `eh_${this.userId}_${key}` : `eh_${key}`;
+  }
+
   getOnlineStatus(): boolean {
     return this.isOnline;
   }
 
   // --- SETTINGS ---
   getUserSettings(): UserSettings {
-    const cached = localStorage.getItem(CACHE_KEYS.SETTINGS);
-    let settings: UserSettings = cached ? JSON.parse(cached) : { ...DEFAULT_USER_SETTINGS };
+    const key = this.getCacheKey('settings');
+    const cached = localStorage.getItem(key);
+    const settings: UserSettings = cached ? JSON.parse(cached) : { ...DEFAULT_USER_SETTINGS };
 
     // Inject Vite environment variable if user hasn't set one manually
     const envKey = import.meta.env.VITE_GEMINI_API_KEY;
@@ -52,13 +63,15 @@ class JsonDbService {
   }
 
   async saveUserSettings(settings: UserSettings): Promise<void> {
-    localStorage.setItem(CACHE_KEYS.SETTINGS, JSON.stringify(settings));
-    await this.upsertDocument('user_settings', 'preferences', settings);
+    const key = this.getCacheKey('settings');
+    localStorage.setItem(key, JSON.stringify(settings));
+    await this.upsertDocument(this.getCollection('user_settings'), 'preferences', settings);
   }
 
   // --- NUTRITION PLAN ---
   async getNutritionPlan(): Promise<NutritionPlan> {
-    const cached = localStorage.getItem(CACHE_KEYS.ACTIVE_PLAN);
+    const key = this.getCacheKey('active_plan');
+    const cached = localStorage.getItem(key);
     if (cached) {
       try {
         return JSON.parse(cached);
@@ -68,70 +81,71 @@ class JsonDbService {
     }
 
     try {
-      const remote = await this.getDocument<NutritionPlan>('food_plan', 'active_plan');
+      const remote = await this.getDocument<NutritionPlan>(this.getCollection('food_plan'), 'active_plan');
       if (remote) {
-        localStorage.setItem(CACHE_KEYS.ACTIVE_PLAN, JSON.stringify(remote));
+        localStorage.setItem(key, JSON.stringify(remote));
         return remote;
       }
     } catch {
       // Offline or remote not seeded yet
     }
 
-    // Default seed
-    localStorage.setItem(CACHE_KEYS.ACTIVE_PLAN, JSON.stringify(DEFAULT_NUTRITION_PLAN));
+    localStorage.setItem(key, JSON.stringify(DEFAULT_NUTRITION_PLAN));
     return DEFAULT_NUTRITION_PLAN;
   }
 
   async saveNutritionPlan(plan: NutritionPlan): Promise<void> {
-    localStorage.setItem(CACHE_KEYS.ACTIVE_PLAN, JSON.stringify(plan));
-    await this.upsertDocument('food_plan', 'active_plan', plan);
+    const key = this.getCacheKey('active_plan');
+    localStorage.setItem(key, JSON.stringify(plan));
+    await this.upsertDocument(this.getCollection('food_plan'), 'active_plan', plan);
   }
 
   // --- DAILY LOGS ---
   async getDailyLog(date: string): Promise<DailyLog | null> {
-    const cached = localStorage.getItem(`${CACHE_KEYS.LOG_PREFIX}${date}`);
-    let localLog: DailyLog | null = cached ? JSON.parse(cached) : null;
+    const key = this.getCacheKey(`log_${date}`);
+    const cached = localStorage.getItem(key);
+    const localLog: DailyLog | null = cached ? JSON.parse(cached) : null;
 
     try {
-      const remote = await this.getDocument<DailyLog>('eating_logs', date);
+      const remote = await this.getDocument<DailyLog>(this.getCollection('eating_logs'), date);
       if (remote) {
-        // Prefer newer if both exist
         if (!localLog || new Date(remote.updatedAt) > new Date(localLog.updatedAt)) {
-          localStorage.setItem(`${CACHE_KEYS.LOG_PREFIX}${date}`, JSON.stringify(remote));
+          localStorage.setItem(key, JSON.stringify(remote));
           return remote;
         }
       }
     } catch {
-      // Remote fetch failed, fallback to local
+      // Offline fallback
     }
 
     return localLog;
   }
 
   async saveDailyLog(log: DailyLog): Promise<void> {
-    localStorage.setItem(`${CACHE_KEYS.LOG_PREFIX}${log.date}`, JSON.stringify(log));
-    await this.upsertDocument('eating_logs', log.date, log);
+    const key = this.getCacheKey(`log_${log.date}`);
+    localStorage.setItem(key, JSON.stringify(log));
+    await this.upsertDocument(this.getCollection('eating_logs'), log.date, log);
   }
 
   async getRecentLogs(limit = 14): Promise<DailyLog[]> {
     const logsMap = new Map<string, DailyLog>();
+    const prefix = this.getCacheKey('log_');
 
-    // 1. Gather all logs stored locally
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
-      if (key?.startsWith(CACHE_KEYS.LOG_PREFIX)) {
+      if (key?.startsWith(prefix)) {
         try {
           const item = JSON.parse(localStorage.getItem(key) || '');
           if (item?.date) logsMap.set(item.date, item);
         } catch {
-          // Ignore corrupted entries
+          // Ignore corrupt entries
         }
       }
     }
 
-    // 2. Fetch remote list and merge
     try {
-      const response = await fetch(`${DB_BASE_URL}/eating_logs?limit=${limit}&offset=0`, {
+      const collection = this.getCollection('eating_logs');
+      const response = await fetch(`${DB_BASE_URL}/${collection}?limit=${limit}&offset=0`, {
         headers: { 'x-api-key': DB_API_KEY },
       });
       if (response.ok) {
@@ -142,22 +156,63 @@ class JsonDbService {
               const existing = logsMap.get(item.data.date);
               if (!existing || new Date(item.data.updatedAt) > new Date(existing.updatedAt)) {
                 logsMap.set(item.data.date, item.data);
-                localStorage.setItem(
-                  `${CACHE_KEYS.LOG_PREFIX}${item.data.date}`,
-                  JSON.stringify(item.data)
-                );
+                localStorage.setItem(this.getCacheKey(`log_${item.data.date}`), JSON.stringify(item.data));
               }
             }
           }
         }
       }
     } catch {
-      // Offline, use local data only
+      // Offline, use local data
     }
 
     return Array.from(logsMap.values()).sort(
       (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
     );
+  }
+
+  // --- AUTO MIGRATION OF LEGACY UNAUTHENTICATED DATA ---
+  async autoMigrateLegacyData(uid: string): Promise<void> {
+    const migrationFlag = `eh_${uid}_legacy_migrated`;
+    if (localStorage.getItem(migrationFlag)) return;
+
+    const legacyPlan = localStorage.getItem('eh_active_plan');
+    const legacySettings = localStorage.getItem('eh_settings');
+
+    if (legacyPlan && !localStorage.getItem(this.getCacheKey('active_plan'))) {
+      try {
+        const plan = JSON.parse(legacyPlan);
+        await this.saveNutritionPlan(plan);
+      } catch (e) {
+        console.warn('Failed to migrate legacy plan', e);
+      }
+    }
+
+    if (legacySettings && !localStorage.getItem(this.getCacheKey('settings'))) {
+      try {
+        const settings = JSON.parse(legacySettings);
+        await this.saveUserSettings(settings);
+      } catch (e) {
+        console.warn('Failed to migrate legacy settings', e);
+      }
+    }
+
+    // Migrate legacy daily logs
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key?.startsWith('eh_log_')) {
+        try {
+          const logData = JSON.parse(localStorage.getItem(key) || '');
+          if (logData?.date) {
+            await this.saveDailyLog(logData);
+          }
+        } catch {
+          // ignore corrupted
+        }
+      }
+    }
+
+    localStorage.setItem(migrationFlag, 'true');
   }
 
   // --- LOW LEVEL HTTP + QUEUE ---
@@ -180,26 +235,22 @@ class JsonDbService {
         },
         body: JSON.stringify(data),
       });
-
-      if (!response.ok) {
-        throw new Error(`Failed with status ${response.status}`);
-      }
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
     } catch {
-      // Queue for background retry
       this.enqueueSync({ collection, id, data, timestamp: Date.now() });
     }
   }
 
   private enqueueSync(item: SyncItem) {
-    const queue: SyncItem[] = JSON.parse(
-      localStorage.getItem(CACHE_KEYS.PENDING_SYNCS) || '[]'
-    );
+    const syncKey = this.getCacheKey('pending_syncs');
+    const queue: SyncItem[] = JSON.parse(localStorage.getItem(syncKey) || '[]');
     queue.push(item);
-    localStorage.setItem(CACHE_KEYS.PENDING_SYNCS, JSON.stringify(queue));
+    localStorage.setItem(syncKey, JSON.stringify(queue));
   }
 
   private async flushSyncQueue() {
-    const queueStr = localStorage.getItem(CACHE_KEYS.PENDING_SYNCS);
+    const syncKey = this.getCacheKey('pending_syncs');
+    const queueStr = localStorage.getItem(syncKey);
     if (!queueStr) return;
     const queue: SyncItem[] = JSON.parse(queueStr);
     if (queue.length === 0) return;
@@ -220,7 +271,7 @@ class JsonDbService {
         remaining.push(item);
       }
     }
-    localStorage.setItem(CACHE_KEYS.PENDING_SYNCS, JSON.stringify(remaining));
+    localStorage.setItem(syncKey, JSON.stringify(remaining));
   }
 }
 

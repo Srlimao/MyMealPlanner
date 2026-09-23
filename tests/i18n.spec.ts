@@ -2,36 +2,47 @@ import { test, expect } from '@playwright/test';
 
 test.describe('Eating Helper - Multi-Language System & Outsourcing Verification', () => {
   test.beforeEach(async ({ page }) => {
+    // Inject mock user for authenticated dashboard testing
+    await page.addInitScript(() => {
+      localStorage.setItem(
+        'eh_e2e_user',
+        JSON.stringify({
+          uid: 'e2e_test_user',
+          email: 'test@example.com',
+          displayName: 'Test User',
+          providerData: [{ providerId: 'password' }],
+        })
+      );
+    });
     await page.goto('/');
     await expect(page.locator('#root')).toBeVisible();
   });
 
   test('should cycle languages via Header globe button and update UI strings', async ({ page }) => {
+    const langBtn = page.locator('header button:has(svg.lucide-globe)');
+
     // 1. Initial Portuguese (PT) state
     await expect(page.locator('button:visible:has-text("Hoje")').first()).toBeVisible();
+    await expect(langBtn).toBeVisible();
 
     // 2. Cycle to Portuguese (BR)
-    const langBtnPt = page.locator('button:has-text("PT"):not(:has-text("PT-BR"))');
-    await expect(langBtnPt).toBeVisible();
-    await langBtnPt.click();
-
-    // Verify Brazilian Portuguese button and state
-    await expect(page.locator('button:has-text("PT-BR")')).toBeVisible();
+    await langBtn.click();
+    await expect(langBtn).toContainText(/pt-br/i);
 
     // 3. Cycle to English
-    await page.locator('button:has-text("PT-BR")').click();
+    await langBtn.click();
     await expect(page.locator('button:visible:has-text("Today")').first()).toBeVisible();
-    await expect(page.locator('button:has-text("EN")')).toBeVisible();
+    await expect(langBtn).toContainText(/en/i);
 
     // 4. Cycle to Spanish
-    await page.locator('button:has-text("EN")').click();
+    await langBtn.click();
     await expect(page.locator('button:visible:has-text("Hoy")').first()).toBeVisible();
-    await expect(page.locator('button:has-text("ES")')).toBeVisible();
+    await expect(langBtn).toContainText(/es/i);
 
     // 5. Cycle back to Portuguese (PT)
-    await page.locator('button:has-text("ES")').click();
+    await langBtn.click();
     await expect(page.locator('button:visible:has-text("Hoje")').first()).toBeVisible();
-    await expect(page.locator('button:has-text("PT"):not(:has-text("PT-BR"))')).toBeVisible();
+    await expect(langBtn).toContainText(/pt$/i);
   });
 
   test('should switch languages via Settings modal and reflect choices immediately', async ({ page }) => {
