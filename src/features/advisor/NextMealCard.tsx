@@ -13,6 +13,8 @@ import {
 import { geminiService } from '../../shared/services/geminiService';
 import { MarkdownViewer } from '../../shared/components/MarkdownViewer';
 
+import { useSubscription } from '../subscription/SubscriptionContext';
+
 interface NextMealCardProps {
   todayLog: DailyLog | null;
   nutritionPlan: NutritionPlan;
@@ -26,6 +28,7 @@ export const NextMealCard: React.FC<NextMealCardProps> = ({
   settings,
   onQuickLogSuggestion,
 }) => {
+  const { canPerformAction, recordAction, getModelForAction, openTierModal } = useSubscription();
   const [loading, setLoading] = useState(false);
   const [suggestion, setSuggestion] = useState<string | null>(null);
   const [modelUsedBadge, setModelUsedBadge] = useState<string | null>(null);
@@ -36,6 +39,13 @@ export const NextMealCard: React.FC<NextMealCardProps> = ({
   const currentMealInfo = determineCurrentMealType(currentHour);
 
   const handleAskSuggestion = async () => {
+    const check = canPerformAction('next_meal');
+    if (!check.allowed) {
+      openTierModal();
+      setSuggestion('⚠️ Limite diário de sugestões atingido. Faça upgrade para sugestões ilimitadas.');
+      return;
+    }
+
     setLoading(true);
     setSuggestion(null);
 
@@ -47,14 +57,16 @@ export const NextMealCard: React.FC<NextMealCardProps> = ({
         settings.targets
       );
       const systemPrompt = buildAdvisorSystemPrompt(nutritionPlan, settings.language);
+      const modelToUse = getModelForAction('next_meal', settings.activeModel);
 
       const response = await geminiService.generateContent(
         prompt,
         undefined,
-        settings.activeModel,
+        modelToUse,
         systemPrompt
       );
 
+      recordAction('next_meal');
       setSuggestion(response.data);
       setModelUsedBadge(response.modelUsed);
     } catch (err: unknown) {

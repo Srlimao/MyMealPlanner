@@ -6,6 +6,8 @@ import { buildAdvisorSystemPrompt, formatDailyConsumptionContext } from './advis
 import { geminiService } from '../../shared/services/geminiService';
 import { MarkdownViewer } from '../../shared/components/MarkdownViewer';
 import { getTranslation } from '../../shared/i18n';
+import { useSubscription } from '../subscription/SubscriptionContext';
+import { TIER_CONFIGS } from '../subscription/types';
 
 interface Message {
   id: string;
@@ -30,6 +32,7 @@ export const AdvisorChatDrawer: React.FC<AdvisorChatDrawerProps> = ({
   settings,
 }) => {
   const t = getTranslation(settings.language);
+  const { tier, canPerformAction, recordAction, getModelForAction, openTierModal } = useSubscription();
 
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -42,6 +45,9 @@ export const AdvisorChatDrawer: React.FC<AdvisorChatDrawerProps> = ({
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const tierConfig = TIER_CONFIGS[tier];
+  const chatCheck = canPerformAction('chat');
 
   // Update initial welcome message if language changes
   useEffect(() => {
@@ -63,6 +69,11 @@ export const AdvisorChatDrawer: React.FC<AdvisorChatDrawerProps> = ({
   const handleSend = async (userText: string) => {
     if (!userText.trim() || loading) return;
 
+    if (!chatCheck.allowed) {
+      openTierModal();
+      return;
+    }
+
     const userMsg: Message = {
       id: `u_${Date.now()}`,
       sender: 'user',
@@ -79,12 +90,16 @@ export const AdvisorChatDrawer: React.FC<AdvisorChatDrawerProps> = ({
       const dailyContext = formatDailyConsumptionContext(todayLog, settings.targets);
       const contextualPrompt = `${dailyContext}\n\nPergunta do Willian:\n${userText}`;
 
+      const modelToUse = getModelForAction('chat', settings.activeModel);
+
       const response = await geminiService.generateContent(
         contextualPrompt,
         undefined,
-        settings.activeModel,
+        modelToUse,
         systemPrompt
       );
+
+      recordAction('chat');
 
       const aiMsg: Message = {
         id: `a_${Date.now()}`,
@@ -116,13 +131,30 @@ export const AdvisorChatDrawer: React.FC<AdvisorChatDrawerProps> = ({
               <Bot className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="text-sm font-bold text-neutral-100">{t.advisor.title}</h3>
-              <p className="text-[10px] text-emerald-400">{t.advisor.subtitle}</p>
+              <div className="flex items-center gap-1.5">
+                <h3 className="text-sm font-bold text-neutral-100">{t.advisor.title}</h3>
+                <span
+                  className={`text-[9px] font-bold px-1.5 py-0.2 rounded uppercase ${
+                    tier === 'pro'
+                      ? 'bg-emerald-500 text-neutral-950'
+                      : tier === 'starter'
+                      ? 'bg-sky-500 text-neutral-950'
+                      : 'bg-neutral-800 text-neutral-300'
+                  }`}
+                >
+                  {tierConfig.badge}
+                </span>
+              </div>
+              <p className="text-[10px] text-emerald-400">
+                {chatCheck.limit === Infinity
+                  ? 'Conversas ilimitadas'
+                  : `${chatCheck.remaining} de ${chatCheck.limit} restantes hoje`}
+              </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 text-neutral-400 hover:text-neutral-100 rounded-lg transition-colors"
+            className="p-1.5 text-neutral-400 hover:text-neutral-100 rounded-lg transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
@@ -190,23 +222,43 @@ export const AdvisorChatDrawer: React.FC<AdvisorChatDrawerProps> = ({
         </div>
 
         {/* Input Footer */}
-        <div className="p-3 border-t border-neutral-800 bg-neutral-950 flex items-center gap-2">
-          <input
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleSend(input)}
-            placeholder={t.advisor.inputPlaceholder}
-            className="flex-1 bg-neutral-900 border border-neutral-800 focus:border-emerald-500 rounded-xl px-3.5 py-2 text-xs text-neutral-100 placeholder-neutral-500 focus:outline-none"
-          />
-          <button
-            onClick={() => handleSend(input)}
-            disabled={!input.trim() || loading}
-            className="p-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 text-white transition-all shrink-0 cursor-pointer"
-          >
-            <Send className="w-4 h-4" />
-          </button>
-        </div>
+        {!chatCheck.allowed ? (
+          <div className="p-3 border-t border-neutral-800 bg-neutral-950 flex flex-col gap-2">
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-rose-400 font-semibold flex items-center gap-1.5">
+                ⚠️ Limite diário de conversas atingido ({chatCheck.limit}/{chatCheck.limit})
+              </span>
+              <button
+                type="button"
+                onClick={openTierModal}
+                className="px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-500 hover:bg-emerald-400 text-neutral-950 transition-colors cursor-pointer"
+              >
+                Aumentar Limite
+              </button>
+            </div>
+            <p className="text-[10px] text-neutral-400">
+              O limite gratuito reinicia à meia-noite. Mude para Starter ou Pro para mais conversas.
+            </p>
+          </div>
+        ) : (
+          <div className="p-3 border-t border-neutral-800 bg-neutral-950 flex items-center gap-2">
+            <input
+              type="text"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleSend(input)}
+              placeholder={t.advisor.inputPlaceholder}
+              className="flex-1 bg-neutral-900 border border-neutral-800 focus:border-emerald-500 rounded-xl px-3.5 py-2 text-xs text-neutral-100 placeholder-neutral-500 focus:outline-none"
+            />
+            <button
+              onClick={() => handleSend(input)}
+              disabled={!input.trim() || loading}
+              className="p-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 text-white transition-all shrink-0 cursor-pointer"
+            >
+              <Send className="w-4 h-4" />
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

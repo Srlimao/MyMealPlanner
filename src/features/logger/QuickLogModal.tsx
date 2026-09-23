@@ -7,6 +7,7 @@ import { processMealImage } from './PhotoProcessor';
 import { buildMealExtractionPrompt } from './parserPrompt';
 import { geminiService } from '../../shared/services/geminiService';
 import { determineCurrentMealType } from '../advisor/advisorPrompt';
+import { useSubscription } from '../subscription/SubscriptionContext';
 
 interface QuickLogModalProps {
   isOpen: boolean;
@@ -21,6 +22,7 @@ export const QuickLogModal: React.FC<QuickLogModalProps> = ({
   onParsedSuccess,
   settings,
 }) => {
+  const { canPerformAction, recordAction, getModelForAction, openTierModal } = useSubscription();
   const [tab, setTab] = useState<'photo' | 'text'>('photo');
   const [textInput, setTextInput] = useState('');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -33,6 +35,8 @@ export const QuickLogModal: React.FC<QuickLogModalProps> = ({
   const currentHour = new Date().getHours() + new Date().getMinutes() / 60;
   const initialMealType = determineCurrentMealType(currentHour).type;
   const [mealType, setMealType] = useState<MealType>(initialMealType);
+
+  const photoCheck = canPerformAction('photo');
 
   if (!isOpen) return null;
   const t = getTranslation(settings.language);
@@ -50,6 +54,11 @@ export const QuickLogModal: React.FC<QuickLogModalProps> = ({
   const handleAnalyze = async () => {
     if (tab === 'photo' && !selectedFile) {
       setError(t.logger.photoRequired);
+      return;
+    }
+    if (tab === 'photo' && !photoCheck.allowed) {
+      setError(photoCheck.reason || 'Limite de fotos diário atingido.');
+      openTierModal();
       return;
     }
     if (tab === 'text' && !textInput.trim()) {
@@ -71,10 +80,12 @@ export const QuickLogModal: React.FC<QuickLogModalProps> = ({
         mealType
       );
 
+      const modelToUse = getModelForAction(tab === 'photo' ? 'photo' : 'chat', settings.activeModel);
+
       const response = await geminiService.generateContent(
         prompt,
         imagePayload,
-        settings.activeModel
+        modelToUse
       );
 
       let cleanedJson = response.data.trim();
@@ -83,6 +94,9 @@ export const QuickLogModal: React.FC<QuickLogModalProps> = ({
       }
 
       const parsedData = JSON.parse(cleanedJson);
+      if (tab === 'photo') {
+        recordAction('photo');
+      }
       onParsedSuccess(parsedData);
       onClose();
     } catch (err: unknown) {
@@ -121,6 +135,11 @@ export const QuickLogModal: React.FC<QuickLogModalProps> = ({
           >
             <Camera className="w-3.5 h-3.5" />
             <span>{t.logger.photoTab}</span>
+            {photoCheck.limit !== Infinity && (
+              <span className="text-[10px] font-mono opacity-80">
+                ({photoCheck.remaining}/{photoCheck.limit})
+              </span>
+            )}
           </button>
           <button
             onClick={() => setTab('text')}

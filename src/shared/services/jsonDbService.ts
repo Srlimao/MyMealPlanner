@@ -3,7 +3,7 @@ import { UserSettings, DEFAULT_USER_SETTINGS } from '../types/settings';
 import { DEFAULT_NUTRITION_PLAN } from '../data/defaultPlan';
 
 const DB_BASE_URL = 'https://db.dunhas.com/api';
-const DB_API_KEY = '1b4a19fdc1eda3f481543b0f25b01ab428e0f6467ad7c9c1';
+const DB_API_KEY = import.meta.env.VITE_DB_API_KEY || '1b4a19fdc1eda3f481543b0f25b01ab428e0f6467ad7c9c1';
 
 interface SyncItem {
   collection: string;

@@ -1,23 +1,23 @@
 import { useState, useEffect } from 'react';
-import { Calendar, BookOpen, BarChart3, Plus } from 'lucide-react';
+import { Calendar, BookOpen, BarChart3, ShieldCheck } from 'lucide-react';
 import { DailyLog, NutritionPlan, MealEntry, MealType } from './shared/types/nutrition';
 import { UserSettings } from './shared/types/settings';
 import { jsonDbService } from './shared/services/jsonDbService';
 import { DEFAULT_NUTRITION_PLAN } from './shared/data/defaultPlan';
 import { TRANSLATIONS } from './shared/i18n/translations';
 import { Header } from './shared/components/Header';
-import { SettingsModal } from './shared/components/SettingsModal';
-import { InstallPromptModal } from './shared/components/InstallPromptModal';
-import { AdvisorChatDrawer } from './features/advisor/AdvisorChatDrawer';
-import { QuickLogModal } from './features/logger/QuickLogModal';
-import { MealReviewModal } from './features/logger/MealReviewModal';
+import { AppModals } from './shared/components/AppModals';
+import { MobileBottomNav } from './shared/components/MobileBottomNav';
 import { DayView } from './features/dashboard/DayView';
 import { PlanViewer } from './features/plan/PlanViewer';
 import { WeeklyOverview } from './features/metrics/WeeklyOverview';
 import { HistoryList } from './features/metrics/HistoryList';
+import { AdminDashboard } from './features/admin/AdminDashboard';
+import { adminService } from './features/admin/adminService';
+import { useAuth } from './features/auth/AuthContext';
 import { usePWAInstall } from './shared/hooks/usePWAInstall';
 
-type Tab = 'dashboard' | 'plan' | 'metrics';
+type Tab = 'dashboard' | 'plan' | 'metrics' | 'admin';
 
 const emptyLog = (date: string): DailyLog => ({
   date,
@@ -28,6 +28,9 @@ const emptyLog = (date: string): DailyLog => ({
 });
 
 export function AuthenticatedApp() {
+  const { user } = useAuth();
+  const isAdmin = adminService.isAdmin(user?.email);
+
   const [activeTab, setActiveTab] = useState<Tab>('dashboard');
   const [currentDate, setCurrentDate] = useState<string>(() => new Date().toISOString().split('T')[0]);
   const [settings, setSettings] = useState<UserSettings>(() => jsonDbService.getUserSettings());
@@ -173,6 +176,21 @@ export function AuthenticatedApp() {
             <BarChart3 className="w-3.5 h-3.5" />
             <span>{t.nav.history}</span>
           </button>
+
+          {isAdmin && (
+            <button
+              data-tab="admin"
+              onClick={() => setActiveTab('admin')}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all ${
+                activeTab === 'admin'
+                  ? 'bg-neutral-800 text-emerald-400 shadow-sm border border-neutral-700/60'
+                  : 'text-neutral-400 hover:text-neutral-200'
+              }`}
+            >
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+              <span>Admin</span>
+            </button>
+          )}
         </div>
 
         {/* Tab Content */}
@@ -206,87 +224,42 @@ export function AuthenticatedApp() {
             />
           </div>
         )}
+
+        {activeTab === 'admin' && <AdminDashboard />}
       </main>
 
       {/* Mobile Bottom Navigation Bar */}
-      <nav className="sm:hidden fixed bottom-0 left-0 right-0 z-40 bg-neutral-950/90 backdrop-blur-md border-t border-neutral-800/90 px-3 py-2 flex items-center justify-around">
-        <button
-          onClick={() => setActiveTab('dashboard')}
-          className={`flex flex-col items-center gap-1 text-[11px] font-medium transition-colors ${
-            activeTab === 'dashboard' ? 'text-emerald-400 font-bold' : 'text-neutral-400'
-          }`}
-        >
-          <Calendar className="w-4 h-4" />
-          <span>{t.nav.dashboard}</span>
-        </button>
-
-        {/* Center Quick Log Action Button */}
-        <button
-          onClick={() => setIsQuickLogOpen(true)}
-          className="flex items-center justify-center w-11 h-11 -mt-4 rounded-full bg-emerald-600 text-white shadow-lg shadow-emerald-950/80 border-2 border-neutral-950 active:scale-90 transition-transform"
-        >
-          <Plus className="w-5 h-5" />
-        </button>
-
-        <button
-          onClick={() => setActiveTab('plan')}
-          className={`flex flex-col items-center gap-1 text-[11px] font-medium transition-colors ${
-            activeTab === 'plan' ? 'text-emerald-400 font-bold' : 'text-neutral-400'
-          }`}
-        >
-          <BookOpen className="w-4 h-4" />
-          <span>{t.nav.plan}</span>
-        </button>
-
-        <button
-          onClick={() => setActiveTab('metrics')}
-          className={`flex flex-col items-center gap-1 text-[11px] font-medium transition-colors ${
-            activeTab === 'metrics' ? 'text-emerald-400 font-bold' : 'text-neutral-400'
-          }`}
-        >
-          <BarChart3 className="w-4 h-4" />
-          <span>{t.nav.history}</span>
-        </button>
-      </nav>
+      <MobileBottomNav
+        activeTab={activeTab}
+        onSelectTab={setActiveTab}
+        onOpenQuickLog={() => setIsQuickLogOpen(true)}
+        isAdmin={isAdmin}
+        translations={t.nav}
+      />
 
       {/* Modals & Drawers */}
-      <SettingsModal
-        isOpen={isSettingsOpen}
-        onClose={() => setIsSettingsOpen(false)}
+      <AppModals
+        isSettingsOpen={isSettingsOpen}
+        onCloseSettings={() => setIsSettingsOpen(false)}
         settings={settings}
-        onSave={handleUpdateSettings}
+        onSaveSettings={handleUpdateSettings}
         canInstall={canInstall}
         isStandalone={isStandalone}
         onInstallApp={promptInstall}
-      />
-      <InstallPromptModal
-        isOpen={showIOSModal}
-        onClose={() => setShowIOSModal(false)}
+        showIOSModal={showIOSModal}
+        onCloseIOSModal={() => setShowIOSModal(false)}
         isIOS={isIOS}
-        language={settings.language}
-      />
-      <AdvisorChatDrawer
-        isOpen={isAdvisorOpen}
-        onClose={() => setIsAdvisorOpen(false)}
-        todayLog={dailyLog}
+        isAdvisorOpen={isAdvisorOpen}
+        onCloseAdvisor={() => setIsAdvisorOpen(false)}
+        dailyLog={dailyLog}
         nutritionPlan={nutritionPlan}
-        settings={settings}
-      />
-      <QuickLogModal
-        isOpen={isQuickLogOpen}
-        onClose={() => setIsQuickLogOpen(false)}
+        isQuickLogOpen={isQuickLogOpen}
+        onCloseQuickLog={() => setIsQuickLogOpen(false)}
+        reviewMealData={reviewMealData}
+        onCloseReviewMeal={() => setReviewMealData(null)}
         onParsedSuccess={(parsed) => setReviewMealData(parsed)}
-        settings={settings}
+        onConfirmMeal={handleConfirmMeal}
       />
-      {reviewMealData && (
-        <MealReviewModal
-          isOpen={true}
-          onClose={() => setReviewMealData(null)}
-          initialMeal={reviewMealData}
-          onConfirm={handleConfirmMeal}
-          lang={settings.language}
-        />
-      )}
     </div>
   );
 }

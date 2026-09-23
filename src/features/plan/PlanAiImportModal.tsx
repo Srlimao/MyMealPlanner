@@ -3,6 +3,7 @@ import { Sparkles, X, Loader2, AlertCircle } from 'lucide-react';
 import { parsePlanWithAI } from './aiPlanParser';
 import { NutritionPlan } from '../../shared/types/nutrition';
 import { getTranslation } from '../../shared/i18n';
+import { useSubscription } from '../subscription/SubscriptionContext';
 
 interface PlanAiImportModalProps {
   isOpen: boolean;
@@ -19,14 +20,22 @@ export const PlanAiImportModal: React.FC<PlanAiImportModalProps> = ({
   currentPlan,
   lang = 'pt',
 }) => {
+  const { canPerformAction, recordAction, openTierModal } = useSubscription();
   const t = getTranslation(lang);
   const [inputText, setInputText] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const planCheck = canPerformAction('plan_import');
+
   if (!isOpen) return null;
 
   const handleAnalyze = async () => {
+    if (!planCheck.allowed) {
+      openTierModal();
+      return;
+    }
+
     if (!inputText.trim()) {
       setError(
         lang === 'en'
@@ -40,6 +49,7 @@ export const PlanAiImportModal: React.FC<PlanAiImportModalProps> = ({
       setIsLoading(true);
       setError(null);
       const parsed = await parsePlanWithAI(inputText, currentPlan);
+      recordAction('plan_import');
       onImport(parsed);
       onClose();
     } catch (err: any) {
@@ -82,6 +92,23 @@ export const PlanAiImportModal: React.FC<PlanAiImportModalProps> = ({
             <X className="w-4 h-4" />
           </button>
         </div>
+
+        {!planCheck.allowed && (
+          <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-between gap-2 text-xs">
+            <span className="text-amber-300 text-[11px]">
+              {lang === 'en'
+                ? 'AI plan import requires Starter or Pro tier.'
+                : 'Importação de planos com IA requer plano Starter ou Pro.'}
+            </span>
+            <button
+              type="button"
+              onClick={openTierModal}
+              className="px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-500 hover:bg-emerald-400 text-neutral-950 transition-colors cursor-pointer shrink-0"
+            >
+              {lang === 'en' ? 'Upgrade' : 'Mudar Plano'}
+            </button>
+          </div>
+        )}
 
         {error && (
           <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-start gap-2 text-rose-300 text-xs">

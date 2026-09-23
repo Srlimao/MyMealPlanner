@@ -6,6 +6,8 @@ import { AuthenticatedApp } from './AuthenticatedApp';
 import { jsonDbService } from './shared/services/jsonDbService';
 import { AppLanguage } from './shared/types/settings';
 
+import { SubscriptionProvider } from './features/subscription/SubscriptionContext';
+
 function AppContent() {
   const { user, loading } = useAuth();
   const [lang, setLang] = useState<AppLanguage>(() => jsonDbService.getUserSettings().language);
@@ -33,7 +35,11 @@ function AppContent() {
     );
   }
 
-  return <AuthenticatedApp />;
+  return (
+    <SubscriptionProvider>
+      <AuthenticatedApp />
+    </SubscriptionProvider>
+  );
 }
 
 export default function App() {

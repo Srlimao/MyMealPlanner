@@ -1,6 +1,7 @@
-import React from 'react';
-import { LogOut, ShieldCheck } from 'lucide-react';
+import { LogOut, ShieldCheck, Sparkles, Zap, Crown } from 'lucide-react';
 import { useAuth } from '../../features/auth/AuthContext';
+import { useSubscription } from '../../features/subscription/SubscriptionContext';
+import { TIER_CONFIGS } from '../../features/subscription/types';
 import { TRANSLATIONS } from '../i18n/translations';
 import { AppLanguage } from '../types/settings';
 
@@ -11,12 +12,14 @@ interface AccountSettingsCardProps {
 
 export const AccountSettingsCard: React.FC<AccountSettingsCardProps> = ({ lang, onLoggedOut }) => {
   const { user, signOut } = useAuth();
+  const { tier, openTierModal } = useSubscription();
   const t = TRANSLATIONS[lang];
 
   if (!user) return null;
 
   const isGoogle = user.providerData.some((p) => p.providerId === 'google.com');
   const initial = (user.displayName || user.email || 'U')[0].toUpperCase();
+  const tierConfig = TIER_CONFIGS[tier];
 
   const handleSignOut = async () => {
     await signOut();
@@ -54,10 +57,40 @@ export const AccountSettingsCard: React.FC<AccountSettingsCardProps> = ({ lang, 
         <button
           type="button"
           onClick={handleSignOut}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-rose-900/50 hover:bg-rose-950/40 text-rose-300 text-xs font-semibold transition-colors shrink-0"
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-rose-900/50 hover:bg-rose-950/40 text-rose-300 text-xs font-semibold transition-colors shrink-0 cursor-pointer"
         >
           <LogOut className="w-3.5 h-3.5" />
           <span>{t.auth.signOut}</span>
+        </button>
+      </div>
+
+      {/* Subscription Tier Info */}
+      <div className="flex items-center justify-between p-2.5 rounded-lg bg-neutral-900/80 border border-neutral-800 text-xs">
+        <div className="flex items-center gap-2">
+          {tier === 'pro' ? (
+            <Crown className="w-4 h-4 text-emerald-400 shrink-0" />
+          ) : tier === 'starter' ? (
+            <Zap className="w-4 h-4 text-sky-400 shrink-0" />
+          ) : (
+            <Sparkles className="w-4 h-4 text-neutral-400 shrink-0" />
+          )}
+          <div>
+            <span className="font-semibold text-neutral-200">Plano {tierConfig.name}</span>
+            <p className="text-[10px] text-neutral-400">
+              {tier === 'free'
+                ? '10 chats/dia • 3 fotos/dia'
+                : tier === 'starter'
+                ? '30 chats/dia • 10 fotos/dia'
+                : 'Ilimitado • Gemini 3.8 Flash'}
+            </p>
+          </div>
+        </div>
+        <button
+          type="button"
+          onClick={openTierModal}
+          className="px-2.5 py-1 rounded-md text-[11px] font-semibold bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 border border-emerald-500/30 transition-colors cursor-pointer"
+        >
+          Alterar Plano
         </button>
       </div>
 

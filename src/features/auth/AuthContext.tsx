@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useState, useMemo } from '
 import { User, authService } from './authService';
 import { isFirebaseConfigured } from './firebase';
 import { jsonDbService } from '../../shared/services/jsonDbService';
+import { adminService } from '../admin/adminService';
 
 interface AuthContextValue {
   user: User | null;
@@ -29,6 +30,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const mockUser = JSON.parse(e2eMock);
         setUser(mockUser as User);
         jsonDbService.setUserId(mockUser.uid);
+        adminService.recordUserPresence(mockUser as User);
         setLoading(false);
         return;
       } catch {
@@ -46,6 +48,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (firebaseUser) {
         jsonDbService.setUserId(firebaseUser.uid);
         await jsonDbService.autoMigrateLegacyData(firebaseUser.uid);
+        adminService.recordUserPresence(firebaseUser);
       } else {
         jsonDbService.setUserId(null);
       }

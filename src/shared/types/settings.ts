@@ -1,9 +1,11 @@
 import { DailyTargets } from './nutrition';
 
 export type GeminiModelId =
+  | 'gemini-3.8-flash'
   | 'gemini-3.5-flash-lite'
   | 'gemini-3.1-flash-lite'
   | 'gemini-2.5-flash'
+  | 'gemini-2.5-flash-lite'
   | 'gemini-2.0-flash'
   | 'gemini-2.0-flash-lite'
   | 'gemma-4-26b-a4b-it'
@@ -17,6 +19,12 @@ export interface ModelOption {
 }
 
 export const AVAILABLE_MODELS: ModelOption[] = [
+  {
+    id: 'gemini-3.8-flash',
+    name: 'Gemini 3.8 Flash',
+    badge: 'State of Art',
+    description: 'Flagship frontier speed & high-reasoning multimodal model.',
+  },
   {
     id: 'gemini-3.5-flash-lite',
     name: 'Gemini 3.5 Flash-Lite',
