@@ -108,11 +108,12 @@ export default function App() {
   };
 
   const handleQuickLogSuggestion = (suggestionText: string, mealType: MealType) => {
+    const mealLabel = t.meals[mealType] || mealType;
     setReviewMealData({
-      name: `Opção sugerida para ${mealType}`,
+      name: `${t.advisor.suggestedOptionPrefix} ${mealLabel}`,
       mealType,
       items: [
-        { id: `item_${Date.now()}`, name: 'Opção do plano recomendada', portion: '1 porção', calories: 350, protein: 25, carbs: 35, fat: 8 },
+        { id: `item_${Date.now()}`, name: t.advisor.recommendedPlanOption, portion: '1 porção', calories: 350, protein: 25, carbs: 35, fat: 8 },
       ],
       notes: suggestionText.slice(0, 150),
       adheresToPlateRule: true,
@@ -145,7 +146,7 @@ export default function App() {
             }`}
           >
             <Calendar className="w-3.5 h-3.5" />
-            <span>{t.dashboard}</span>
+            <span>{t.nav.dashboard}</span>
           </button>
 
           <button
@@ -157,7 +158,7 @@ export default function App() {
             }`}
           >
             <BookOpen className="w-3.5 h-3.5" />
-            <span>{t.plan}</span>
+            <span>{t.nav.plan}</span>
           </button>
 
           <button
@@ -169,7 +170,7 @@ export default function App() {
             }`}
           >
             <BarChart3 className="w-3.5 h-3.5" />
-            <span>{t.history}</span>
+            <span>{t.nav.history}</span>
           </button>
         </div>
 
@@ -188,14 +189,15 @@ export default function App() {
         )}
 
         {activeTab === 'plan' && (
-          <PlanViewer plan={nutritionPlan} onUpdatePlan={handleUpdatePlan} />
+          <PlanViewer plan={nutritionPlan} onUpdatePlan={handleUpdatePlan} lang={settings.language} />
         )}
 
         {activeTab === 'metrics' && (
           <div className="space-y-5 pb-20">
-            <WeeklyOverview logs={recentLogs} targetCalories={settings.targets.calories} />
+            <WeeklyOverview logs={recentLogs} targetCalories={settings.targets.calories} lang={settings.language} />
             <HistoryList
               logs={recentLogs}
+              lang={settings.language}
               onSelectDate={(selected) => {
                 setCurrentDate(selected);
                 setActiveTab('dashboard');
@@ -214,7 +216,7 @@ export default function App() {
           }`}
         >
           <Calendar className="w-4 h-4" />
-          <span>{t.dashboard}</span>
+          <span>{t.nav.dashboard}</span>
         </button>
 
         {/* Center Quick Log Action Button */}
@@ -232,7 +234,7 @@ export default function App() {
           }`}
         >
           <BookOpen className="w-4 h-4" />
-          <span>{t.plan}</span>
+          <span>{t.nav.plan}</span>
         </button>
 
         <button
@@ -242,7 +244,7 @@ export default function App() {
           }`}
         >
           <BarChart3 className="w-4 h-4" />
-          <span>{t.history}</span>
+          <span>{t.nav.history}</span>
         </button>
       </nav>
 

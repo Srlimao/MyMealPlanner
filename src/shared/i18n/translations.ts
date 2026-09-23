@@ -1,102 +1,22 @@
-import { AppLanguage } from '../types/settings';
 import { MealType } from '../types/nutrition';
+import { getTranslation, getMealNames, TranslationSchema } from './index';
 
-export const MEAL_NAMES: Record<AppLanguage, Record<MealType, string>> = {
-  pt: {
-    pequeno_almoco: 'Pequeno Almoço',
-    almoco: 'Almoço',
-    lanche: 'Lanche',
-    jantar: 'Jantar',
-    ceia: 'Ceia SOS',
-    snack: 'Snack / Extra',
-  },
-  en: {
-    pequeno_almoco: 'Breakfast',
-    almoco: 'Lunch',
-    lanche: 'Afternoon Snack',
-    jantar: 'Dinner',
-    ceia: 'Late Snack SOS',
-    snack: 'Snack / Extra',
-  },
-};
+export const TRANSLATIONS: Record<string, TranslationSchema> = new Proxy(
+  {} as Record<string, TranslationSchema>,
+  {
+    get: (_target, prop: string) => {
+      return getTranslation(prop);
+    },
+  }
+);
 
-export const TRANSLATIONS = {
-  pt: {
-    appTitle: 'Eating Helper',
-    tagline: 'Assistente Nutricional Inteligente',
-    dashboard: 'Hoje',
-    plan: 'Plano Alimentar',
-    history: 'Histórico & Métricas',
-    askAi: 'Perguntar ao Assistente',
-    whatToEatNow: 'O que comer agora?',
-    suggestMeal: 'Sugerir Próxima Refeição',
-    logThisMeal: 'Registar Esta Opção',
-    quickLog: 'Registar Refeição',
-    takePhoto: 'Tirar Foto / Carregar Imagem',
-    describeMeal: 'Descrever refeição em texto...',
-    calories: 'Calorias',
-    protein: 'Proteína',
-    carbs: 'Hidratos',
-    fat: 'Gordura',
-    waterGoal: 'Água (Meta: 2L)',
-    sodaLimit: 'Cola Zero (Máx: 1/dia)',
-    plateAdherence: 'Prato Equilibrado (1/2 hortícolas, 1/4 hidratos, 1/4 proteína)',
-    noMealsToday: 'Ainda não registou refeições hoje.',
-    deleteMeal: 'Eliminar',
-    reviewMeal: 'Rever e Confirmar Refeição',
-    saveMeal: 'Guardar no Diário',
-    cancel: 'Cancelar',
-    analyzingMeal: 'A analisar nutrientes com Gemini...',
-    modelFallbackNotice: 'Quota atingida no modelo anterior. A usar automaticamente:',
-    settings: 'Configurações',
-    geminiKey: 'Chave API Gemini',
-    geminiKeyHint: 'Defina aqui ou via segredo GitHub (VITE_GEMINI_API_KEY).',
-    activeModel: 'Modelo Gemini Ativo',
-    language: 'Idioma',
-    syncedWithDb: 'Sincronizado com a base de dados',
-    offlineMode: 'Modo Offline (guardado localmente)',
-    fruitEquivalencies: 'Equivalências de Fruta',
-    savePlan: 'Guardar Alterações do Plano',
-    commitments: 'Compromissos do Nutricionista',
-    weeklyAverages: 'Médias dos últimos 7 dias',
-  },
-  en: {
-    appTitle: 'Eating Helper',
-    tagline: 'Smart Nutrition Assistant',
-    dashboard: 'Today',
-    plan: 'Nutrition Plan',
-    history: 'History & Metrics',
-    askAi: 'Ask Assistant',
-    whatToEatNow: 'What to eat now?',
-    suggestMeal: 'Suggest Next Meal',
-    logThisMeal: 'Log This Option',
-    quickLog: 'Log Meal',
-    takePhoto: 'Take Photo / Upload Image',
-    describeMeal: 'Describe your meal in text...',
-    calories: 'Calories',
-    protein: 'Protein',
-    carbs: 'Carbs',
-    fat: 'Fat',
-    waterGoal: 'Water (Goal: 2L)',
-    sodaLimit: 'Diet Soda (Max: 1/day)',
-    plateAdherence: 'Balanced Plate (1/2 veg, 1/4 carb, 1/4 protein)',
-    noMealsToday: 'No meals logged yet today.',
-    deleteMeal: 'Delete',
-    reviewMeal: 'Review and Confirm Meal',
-    saveMeal: 'Save to Daily Log',
-    cancel: 'Cancel',
-    analyzingMeal: 'Analyzing nutrients with Gemini...',
-    modelFallbackNotice: 'Quota limit hit on previous model. Automatically switched to:',
-    settings: 'Settings',
-    geminiKey: 'Gemini API Key',
-    geminiKeyHint: 'Set here or via GitHub Actions secret (VITE_GEMINI_API_KEY).',
-    activeModel: 'Active Gemini Model',
-    language: 'Language',
-    syncedWithDb: 'Synced with cloud database',
-    offlineMode: 'Offline Mode (saved locally)',
-    fruitEquivalencies: 'Fruit Equivalencies',
-    savePlan: 'Save Plan Changes',
-    commitments: 'Nutritionist Commitments',
-    weeklyAverages: '7-Day Averages',
-  },
-};
+export const MEAL_NAMES: Record<string, Record<MealType, string>> = new Proxy(
+  {} as Record<string, Record<MealType, string>>,
+  {
+    get: (_target, prop: string) => {
+      return getMealNames(prop);
+    },
+  }
+);
+
+export type { TranslationSchema };

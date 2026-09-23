@@ -2,12 +2,15 @@ import React, { useState } from 'react';
 import { Apple, Search } from 'lucide-react';
 import { NutritionPlan } from '../../shared/types/nutrition';
 import { Card } from '../../shared/components/Card';
+import { getTranslation } from '../../shared/i18n';
 
 interface EquivalenciesTableProps {
   plan: NutritionPlan;
+  lang?: string;
 }
 
-export const EquivalenciesTable: React.FC<EquivalenciesTableProps> = ({ plan }) => {
+export const EquivalenciesTable: React.FC<EquivalenciesTableProps> = ({ plan, lang = 'pt' }) => {
+  const t = getTranslation(lang);
   const [search, setSearch] = useState('');
 
   const filtered = plan.fruitEquivalencies.filter(
@@ -24,8 +27,8 @@ export const EquivalenciesTable: React.FC<EquivalenciesTableProps> = ({ plan }) 
             <Apple className="w-4 h-4" />
           </div>
           <div>
-            <h4 className="text-sm font-bold text-neutral-100">Equivalências de Fruta</h4>
-            <p className="text-[11px] text-neutral-400">1 peça de fruta equivale a qualquer uma das opções abaixo:</p>
+            <h4 className="text-sm font-bold text-neutral-100">{t.plan.fruitEquivalencies}</h4>
+            <p className="text-[11px] text-neutral-400">{t.plan.fruitEquivalenciesSubtitle}</p>
           </div>
         </div>
 
@@ -36,7 +39,7 @@ export const EquivalenciesTable: React.FC<EquivalenciesTableProps> = ({ plan }) 
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Filtrar fruta..."
+            placeholder={t.plan.filterFruit}
             className="w-full sm:w-44 bg-neutral-950 border border-neutral-800 rounded-xl pl-8 pr-3 py-1.5 text-xs text-neutral-200 focus:outline-none focus:border-emerald-500"
           />
         </div>

@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { X, Key, Cpu, Check, Eye, EyeOff, Smartphone, Download } from 'lucide-react';
+import { X, Key, Cpu, Check, Eye, EyeOff, Smartphone, Download, Globe } from 'lucide-react';
 import { UserSettings, AVAILABLE_MODELS } from '../types/settings';
 import { TRANSLATIONS } from '../i18n/translations';
+import { SUPPORTED_LANGUAGES } from '../i18n';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -45,7 +46,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
         <div className="flex items-center justify-between px-5 py-4 border-b border-neutral-800 shrink-0">
           <div className="flex items-center gap-2">
             <Cpu className="w-5 h-5 text-emerald-400" />
-            <h2 className="text-base font-semibold text-neutral-100">{t.settings}</h2>
+            <h2 className="text-base font-semibold text-neutral-100">{t.settings.title}</h2>
           </div>
           <button
             onClick={onClose}
@@ -57,11 +58,39 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
         {/* Scrollable Body */}
         <div className="p-5 space-y-5 overflow-y-auto">
+          {/* Language Selector */}
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-neutral-300 flex items-center gap-1.5">
+              <Globe className="w-3.5 h-3.5 text-emerald-400" />
+              {t.settings.language}
+            </label>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+              {SUPPORTED_LANGUAGES.map((lang) => {
+                const isSelected = formData.language === lang.code;
+                return (
+                  <button
+                    key={lang.code}
+                    type="button"
+                    onClick={() => setFormData({ ...formData, language: lang.code })}
+                    className={`flex items-center justify-center gap-2 p-2.5 rounded-xl border text-xs font-semibold transition-all ${
+                      isSelected
+                        ? 'border-emerald-500 bg-emerald-950/20 text-emerald-300 shadow-sm'
+                        : 'border-neutral-800 bg-neutral-950 text-neutral-400 hover:border-neutral-700'
+                    }`}
+                  >
+                    <span className="text-base">{lang.flag}</span>
+                    <span>{lang.name}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
           {/* Gemini API Key */}
           <div className="space-y-1.5">
             <label className="text-xs font-semibold text-neutral-300 flex items-center gap-1.5">
               <Key className="w-3.5 h-3.5 text-emerald-400" />
-              {t.geminiKey}
+              {t.settings.geminiKey}
             </label>
             <div className="relative">
               <input
@@ -79,12 +108,12 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 {showKey ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
             </div>
-            <p className="text-[11px] text-neutral-500">{t.geminiKeyHint}</p>
+            <p className="text-[11px] text-neutral-500">{t.settings.geminiKeyHint}</p>
           </div>
 
           {/* Model Selector */}
           <div className="space-y-2">
-            <label className="text-xs font-semibold text-neutral-300">{t.activeModel}</label>
+            <label className="text-xs font-semibold text-neutral-300">{t.settings.activeModel}</label>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {AVAILABLE_MODELS.map((model) => {
                 const isSelected = formData.activeModel === model.id;
@@ -116,12 +145,12 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
           {/* Auto Fallback Toggle */}
           <div className="flex items-center justify-between bg-neutral-950 p-3.5 rounded-xl border border-neutral-800">
-            <div className="space-y-0.5">
+            <div className="space-y-0.5 pr-2">
               <span className="text-xs font-medium text-neutral-200">
-                Fallback Automático em Quota (429)
+                {t.settings.autoFallback}
               </span>
               <p className="text-[11px] text-neutral-500">
-                Troca instantaneamente para outro modelo Flash se a quota esgotar.
+                {t.settings.autoFallbackDesc}
               </p>
             </div>
             <input
@@ -130,17 +159,16 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               onChange={(e) =>
                 setFormData({ ...formData, autoFallbackOnRateLimit: e.target.checked })
               }
-              className="w-4 h-4 accent-emerald-500 rounded cursor-pointer"
-            >
-            </input>
+              className="w-4 h-4 accent-emerald-500 rounded cursor-pointer shrink-0"
+            />
           </div>
 
           {/* Daily Nutrition Targets */}
           <div className="space-y-2.5">
-            <span className="text-xs font-semibold text-neutral-300">Metas Diárias</span>
+            <span className="text-xs font-semibold text-neutral-300">{t.settings.dailyTargets}</span>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
               <div>
-                <label className="text-[10px] text-neutral-400">Calorias (kcal)</label>
+                <label className="text-[10px] text-neutral-400">{t.settings.caloriesKcal}</label>
                 <input
                   type="number"
                   value={formData.targets.calories}
@@ -154,7 +182,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 />
               </div>
               <div>
-                <label className="text-[10px] text-neutral-400">Proteína (g)</label>
+                <label className="text-[10px] text-neutral-400">{t.settings.proteinG}</label>
                 <input
                   type="number"
                   value={formData.targets.protein}
@@ -168,7 +196,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 />
               </div>
               <div>
-                <label className="text-[10px] text-neutral-400">Hidratos (g)</label>
+                <label className="text-[10px] text-neutral-400">{t.settings.carbsG}</label>
                 <input
                   type="number"
                   value={formData.targets.carbs}
@@ -182,7 +210,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 />
               </div>
               <div>
-                <label className="text-[10px] text-neutral-400">Gordura (g)</label>
+                <label className="text-[10px] text-neutral-400">{t.settings.fatG}</label>
                 <input
                   type="number"
                   value={formData.targets.fat}
@@ -204,18 +232,18 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               <div className="space-y-0.5">
                 <span className="text-xs font-semibold text-neutral-200 flex items-center gap-1.5">
                   <Smartphone className="w-3.5 h-3.5 text-emerald-400" />
-                  Aplicação Móvel (PWA)
+                  {t.settings.pwaTitle}
                 </span>
                 <p className="text-[11px] text-neutral-500">
                   {isStandalone
-                    ? 'Aplicação já instalada e a correr em modo nativo.'
-                    : 'Instale a aplicação no seu ecrã inicial para acesso rápido e utilização sem navegador.'}
+                    ? t.settings.pwaInstalledDesc
+                    : t.settings.pwaNotInstalledDesc}
                 </p>
               </div>
 
               {isStandalone ? (
                 <span className="flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-[11px] font-semibold self-start sm:self-auto shrink-0">
-                  <Check className="w-3.5 h-3.5" /> Instalada
+                  <Check className="w-3.5 h-3.5" /> {t.settings.pwaInstalled}
                 </span>
               ) : (
                 <button
@@ -224,7 +252,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold shadow transition-all active:scale-95 self-start sm:self-auto shrink-0"
                 >
                   <Download className="w-3.5 h-3.5" />
-                  <span>{canInstall ? 'Instalar App' : 'Como Instalar'}</span>
+                  <span>{canInstall ? t.settings.installApp : t.settings.howToInstall}</span>
                 </button>
               )}
             </div>
@@ -238,7 +266,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             onClick={onClose}
             className="px-3.5 py-1.5 rounded-lg text-xs font-medium text-neutral-400 hover:text-neutral-200 hover:bg-neutral-800 transition-colors"
           >
-            {t.cancel}
+            {t.common.cancel}
           </button>
           <button
             type="button"
@@ -246,7 +274,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             className="flex items-center gap-1.5 px-4 py-1.5 rounded-lg text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white shadow transition-all"
           >
             {isSaved ? <Check className="w-4 h-4" /> : null}
-            <span>{isSaved ? 'Guardado!' : 'Guardar Alterações'}</span>
+            <span>{isSaved ? t.plan.saved : t.settings.saveChanges}</span>
           </button>
         </div>
       </div>

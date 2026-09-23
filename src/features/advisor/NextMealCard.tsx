@@ -4,6 +4,7 @@ import { Card } from '../../shared/components/Card';
 import { DailyLog, NutritionPlan, MealType } from '../../shared/types/nutrition';
 import { UserSettings } from '../../shared/types/settings';
 import { TRANSLATIONS } from '../../shared/i18n/translations';
+import { getMealName } from '../../shared/i18n';
 import {
   determineCurrentMealType,
   buildAdvisorSystemPrompt,
@@ -73,10 +74,10 @@ export const NextMealCard: React.FC<NextMealCardProps> = ({
           </div>
           <div>
             <span className="text-[11px] font-semibold text-emerald-400 tracking-wider uppercase">
-              {settings.language === 'pt' ? 'Próxima Refeição Sugerida' : 'Next Suggested Meal'}
+              {t.advisor.suggestNextMeal}
             </span>
             <h3 className="text-base font-bold text-neutral-100 flex items-center gap-2">
-              {settings.language === 'pt' ? currentMealInfo.labelPt : currentMealInfo.labelEn}
+              {getMealName(currentMealInfo.type, settings.language)}
               <span className="text-xs font-normal text-neutral-500 font-mono">
                 ({now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })})
               </span>
@@ -92,12 +93,12 @@ export const NextMealCard: React.FC<NextMealCardProps> = ({
           {loading ? (
             <>
               <Loader2 className="w-3.5 h-3.5 animate-spin" />
-              <span>A pensar...</span>
+              <span>{t.advisor.thinking}</span>
             </>
           ) : (
             <>
               <Sparkles className="w-3.5 h-3.5" />
-              <span>{t.whatToEatNow}</span>
+              <span>{t.advisor.whatToEatNow}</span>
             </>
           )}
         </button>
@@ -113,7 +114,7 @@ export const NextMealCard: React.FC<NextMealCardProps> = ({
           <div className="flex flex-wrap items-center justify-between gap-2">
             {modelUsedBadge && (
               <span className="text-[10px] text-neutral-500 font-mono">
-                Gerado por: {modelUsedBadge}
+                {t.advisor.generatedBy}: {modelUsedBadge}
               </span>
             )}
             <button
@@ -121,7 +122,7 @@ export const NextMealCard: React.FC<NextMealCardProps> = ({
               className="flex items-center gap-1.5 text-xs font-semibold text-emerald-400 hover:text-emerald-300 transition-colors ml-auto"
             >
               <CheckCircle2 className="w-3.5 h-3.5" />
-              <span>{t.logThisMeal}</span>
+              <span>{t.advisor.logThisMeal}</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>

@@ -4,14 +4,17 @@ import { NutritionPlan } from '../../shared/types/nutrition';
 import { Card } from '../../shared/components/Card';
 import { EquivalenciesTable } from './EquivalenciesTable';
 import { PlanEditor } from './PlanEditor';
+import { getTranslation } from '../../shared/i18n';
 
 interface PlanViewerProps {
   plan: NutritionPlan;
   onUpdatePlan: (updatedPlan: NutritionPlan) => void;
+  lang?: string;
 }
 
-export const PlanViewer: React.FC<PlanViewerProps> = ({ plan, onUpdatePlan }) => {
+export const PlanViewer: React.FC<PlanViewerProps> = ({ plan, onUpdatePlan, lang = 'pt' }) => {
   const [mode, setMode] = useState<'view' | 'edit' | 'equivalencies'>('view');
+  const t = getTranslation(lang);
 
   const handleSaveMarkdown = (newMarkdown: string) => {
     onUpdatePlan({
@@ -28,6 +31,7 @@ export const PlanViewer: React.FC<PlanViewerProps> = ({ plan, onUpdatePlan }) =>
         plan={plan}
         onSave={handleSaveMarkdown}
         onCancel={() => setMode('view')}
+        lang={lang}
       />
     );
   }
@@ -49,28 +53,28 @@ export const PlanViewer: React.FC<PlanViewerProps> = ({ plan, onUpdatePlan }) =>
         <div className="flex items-center gap-2">
           <button
             onClick={() => setMode(mode === 'equivalencies' ? 'view' : 'equivalencies')}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all ${
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all cursor-pointer ${
               mode === 'equivalencies'
                 ? 'bg-amber-500/15 border-amber-500/30 text-amber-300'
                 : 'bg-neutral-900 border-neutral-800 text-neutral-300 hover:border-neutral-700'
             }`}
           >
             <Apple className="w-3.5 h-3.5" />
-            <span>Equivalências de Fruta</span>
+            <span>{t.plan.fruitEquivalencies}</span>
           </button>
 
           <button
             onClick={() => setMode('edit')}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-neutral-900 border border-neutral-800 hover:border-neutral-700 text-neutral-300 text-xs font-semibold transition-all"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-neutral-900 border border-neutral-800 hover:border-neutral-700 text-neutral-300 text-xs font-semibold transition-all cursor-pointer"
           >
             <Edit3 className="w-3.5 h-3.5 text-emerald-400" />
-            <span>Editar Markdown</span>
+            <span>{t.plan.editMarkdown}</span>
           </button>
         </div>
       </div>
 
       {mode === 'equivalencies' ? (
-        <EquivalenciesTable plan={plan} />
+        <EquivalenciesTable plan={plan} lang={lang} />
       ) : (
         <>
           {/* Commitments Banner */}
@@ -78,7 +82,7 @@ export const PlanViewer: React.FC<PlanViewerProps> = ({ plan, onUpdatePlan }) =>
             <div className="flex items-center gap-2 text-emerald-400">
               <ShieldCheck className="w-4 h-4" />
               <h3 className="text-xs font-bold uppercase tracking-wider">
-                Compromissos até à Próxima Consulta
+                {t.plan.commitmentsTitle}
               </h3>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-neutral-300">
@@ -112,7 +116,7 @@ export const PlanViewer: React.FC<PlanViewerProps> = ({ plan, onUpdatePlan }) =>
                       className="bg-neutral-950/80 p-3 rounded-xl border border-neutral-800/80 space-y-1.5"
                     >
                       <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-400">
-                        Opção {opt.optionNumber}
+                        {t.plan.option} {opt.optionNumber}
                       </span>
                       <ul className="space-y-1 text-xs text-neutral-300">
                         {opt.items.map((item, idx) => (

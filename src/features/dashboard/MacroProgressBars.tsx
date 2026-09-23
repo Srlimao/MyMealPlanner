@@ -2,13 +2,16 @@ import React from 'react';
 import { Flame, Shield, Wheat, Droplet } from 'lucide-react';
 import { MealTotals, DailyTargets } from '../../shared/types/nutrition';
 import { Card } from '../../shared/components/Card';
+import { getTranslation } from '../../shared/i18n';
 
 interface MacroProgressBarsProps {
   totals: MealTotals;
   targets: DailyTargets;
+  lang?: string;
 }
 
-export const MacroProgressBars: React.FC<MacroProgressBarsProps> = ({ totals, targets }) => {
+export const MacroProgressBars: React.FC<MacroProgressBarsProps> = ({ totals, targets, lang = 'pt' }) => {
+  const t = getTranslation(lang);
   const calPercent = Math.min(100, Math.round((totals.calories / targets.calories) * 100)) || 0;
   const proPercent = Math.min(100, Math.round((totals.protein / targets.protein) * 100)) || 0;
   const carbPercent = Math.min(100, Math.round((totals.carbs / targets.carbs) * 100)) || 0;
@@ -24,7 +27,7 @@ export const MacroProgressBars: React.FC<MacroProgressBarsProps> = ({ totals, ta
           </div>
           <div>
             <span className="text-[10px] font-semibold text-neutral-400 uppercase tracking-wider">
-              Calorias Diárias
+              {t.macros.dailyCalories}
             </span>
             <div className="flex items-baseline gap-1.5">
               <span className="text-xl sm:text-2xl font-bold text-neutral-100 font-mono">
@@ -38,7 +41,7 @@ export const MacroProgressBars: React.FC<MacroProgressBarsProps> = ({ totals, ta
         <div className="text-right">
           <span className="text-xs font-bold font-mono text-emerald-400">{calPercent}%</span>
           <span className="text-[10px] text-neutral-500 block">
-            {Math.max(0, targets.calories - totals.calories)} kcal restantes
+            {Math.max(0, targets.calories - totals.calories)} kcal {t.macros.remaining}
           </span>
         </div>
       </div>
@@ -57,7 +60,7 @@ export const MacroProgressBars: React.FC<MacroProgressBarsProps> = ({ totals, ta
         <div className="bg-neutral-950/80 p-2.5 rounded-xl border border-neutral-800/80 space-y-1.5">
           <div className="flex items-center justify-between text-[11px]">
             <span className="text-neutral-400 flex items-center gap-1">
-              <Shield className="w-3 h-3 text-sky-400" /> Prot
+              <Shield className="w-3 h-3 text-sky-400" /> {t.macros.proteinShort}
             </span>
             <span className="font-mono font-semibold text-neutral-200">{totals.protein}g</span>
           </div>
@@ -68,7 +71,7 @@ export const MacroProgressBars: React.FC<MacroProgressBarsProps> = ({ totals, ta
             />
           </div>
           <span className="text-[9px] text-neutral-500 font-mono block text-right">
-            meta: {targets.protein}g
+            {t.macros.target}: {targets.protein}g
           </span>
         </div>
 
@@ -76,7 +79,7 @@ export const MacroProgressBars: React.FC<MacroProgressBarsProps> = ({ totals, ta
         <div className="bg-neutral-950/80 p-2.5 rounded-xl border border-neutral-800/80 space-y-1.5">
           <div className="flex items-center justify-between text-[11px]">
             <span className="text-neutral-400 flex items-center gap-1">
-              <Wheat className="w-3 h-3 text-amber-400" /> Hidr
+              <Wheat className="w-3 h-3 text-amber-400" /> {t.macros.carbsShort}
             </span>
             <span className="font-mono font-semibold text-neutral-200">{totals.carbs}g</span>
           </div>
@@ -87,7 +90,7 @@ export const MacroProgressBars: React.FC<MacroProgressBarsProps> = ({ totals, ta
             />
           </div>
           <span className="text-[9px] text-neutral-500 font-mono block text-right">
-            meta: {targets.carbs}g
+            {t.macros.target}: {targets.carbs}g
           </span>
         </div>
 
@@ -95,7 +98,7 @@ export const MacroProgressBars: React.FC<MacroProgressBarsProps> = ({ totals, ta
         <div className="bg-neutral-950/80 p-2.5 rounded-xl border border-neutral-800/80 space-y-1.5">
           <div className="flex items-center justify-between text-[11px]">
             <span className="text-neutral-400 flex items-center gap-1">
-              <Droplet className="w-3 h-3 text-rose-400" /> Gord
+              <Droplet className="w-3 h-3 text-rose-400" /> {t.macros.fatShort}
             </span>
             <span className="font-mono font-semibold text-neutral-200">{totals.fat}g</span>
           </div>
@@ -106,7 +109,7 @@ export const MacroProgressBars: React.FC<MacroProgressBarsProps> = ({ totals, ta
             />
           </div>
           <span className="text-[9px] text-neutral-500 font-mono block text-right">
-            meta: {targets.fat}g
+            {t.macros.target}: {targets.fat}g
           </span>
         </div>
       </div>

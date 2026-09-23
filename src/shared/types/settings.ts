@@ -61,7 +61,7 @@ export const AVAILABLE_MODELS: ModelOption[] = [
   },
 ];
 
-export type AppLanguage = 'pt' | 'en';
+export type AppLanguage = 'pt' | 'pt-br' | 'en' | 'es' | string;
 
 export interface UserSettings {
   geminiApiKey: string;

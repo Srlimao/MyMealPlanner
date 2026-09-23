@@ -1,20 +1,24 @@
+import React from 'react';
 import { BarChart3, Flame, Shield, Droplet } from 'lucide-react';
 import { DailyLog } from '../../shared/types/nutrition';
 import { Card } from '../../shared/components/Card';
+import { getTranslation } from '../../shared/i18n';
 
 interface WeeklyOverviewProps {
   logs: DailyLog[];
   targetCalories: number;
+  lang?: string;
 }
 
-export const WeeklyOverview: React.FC<WeeklyOverviewProps> = ({ logs, targetCalories }) => {
+export const WeeklyOverview: React.FC<WeeklyOverviewProps> = ({ logs, targetCalories, lang = 'pt' }) => {
+  const t = getTranslation(lang);
   // Take last 7 days sorted chronologically for chart
   const recent7 = [...logs].slice(0, 7).reverse();
 
   if (recent7.length === 0) {
     return (
       <Card className="text-center p-8 text-neutral-500 text-xs">
-        Sem dados históricos suficientes para gerar gráficos.
+        {t.metrics.noHistoryData}
       </Card>
     );
   }
@@ -37,28 +41,28 @@ export const WeeklyOverview: React.FC<WeeklyOverviewProps> = ({ logs, targetCalo
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <Card className="p-3.5 space-y-1">
           <div className="flex items-center gap-1.5 text-amber-400 text-xs font-semibold">
-            <Flame className="w-3.5 h-3.5" /> Média Calorias
+            <Flame className="w-3.5 h-3.5" /> {t.metrics.avgCalories}
           </div>
           <div className="text-lg font-bold text-neutral-100 font-mono">
-            {avgCalories} <span className="text-xs text-neutral-500 font-normal">kcal/dia</span>
+            {avgCalories} <span className="text-xs text-neutral-500 font-normal">kcal{t.metrics.perDay}</span>
           </div>
         </Card>
 
         <Card className="p-3.5 space-y-1">
           <div className="flex items-center gap-1.5 text-sky-400 text-xs font-semibold">
-            <Shield className="w-3.5 h-3.5" /> Média Proteína
+            <Shield className="w-3.5 h-3.5" /> {t.metrics.avgProtein}
           </div>
           <div className="text-lg font-bold text-neutral-100 font-mono">
-            {avgProtein} <span className="text-xs text-neutral-500 font-normal">g/dia</span>
+            {avgProtein} <span className="text-xs text-neutral-500 font-normal">g{t.metrics.perDay}</span>
           </div>
         </Card>
 
         <Card className="p-3.5 space-y-1">
           <div className="flex items-center gap-1.5 text-blue-400 text-xs font-semibold">
-            <Droplet className="w-3.5 h-3.5" /> Média Água
+            <Droplet className="w-3.5 h-3.5" /> {t.metrics.avgWater}
           </div>
           <div className="text-lg font-bold text-neutral-100 font-mono">
-            {avgWater} <span className="text-xs text-neutral-500 font-normal">ml/dia</span>
+            {avgWater} <span className="text-xs text-neutral-500 font-normal">ml{t.metrics.perDay}</span>
           </div>
         </Card>
       </div>
@@ -69,10 +73,10 @@ export const WeeklyOverview: React.FC<WeeklyOverviewProps> = ({ logs, targetCalo
           <div className="flex items-center gap-2">
             <BarChart3 className="w-4 h-4 text-emerald-400" />
             <h4 className="text-xs font-bold uppercase tracking-wider text-neutral-300">
-              Tendência de Calorias (Últimos 7 Dias)
+              {t.metrics.calorieTrend}
             </h4>
           </div>
-          <span className="text-[11px] text-neutral-500 font-mono">Meta: {targetCalories} kcal</span>
+          <span className="text-[11px] text-neutral-500 font-mono">{t.macros.target}: {targetCalories} kcal</span>
         </div>
 
         <div className="h-40 flex items-end justify-between gap-2 pt-4 px-2">

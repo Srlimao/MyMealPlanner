@@ -1,6 +1,7 @@
 import React from 'react';
 import { X, Share, PlusSquare, Smartphone, Check } from 'lucide-react';
 import { AppLanguage } from '../types/settings';
+import { TRANSLATIONS } from '../i18n/translations';
 
 interface InstallPromptModalProps {
   isOpen: boolean;
@@ -16,8 +17,7 @@ export const InstallPromptModal: React.FC<InstallPromptModalProps> = ({
   language = 'pt',
 }) => {
   if (!isOpen) return null;
-
-  const isPt = language === 'pt';
+  const t = TRANSLATIONS[language];
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-sm animate-fade-in">
@@ -30,7 +30,7 @@ export const InstallPromptModal: React.FC<InstallPromptModalProps> = ({
             </div>
             <div>
               <h3 className="text-sm font-bold text-neutral-100">
-                {isPt ? 'Instalar Aplicação' : 'Install App'}
+                {t.pwa.modalTitle}
               </h3>
               <p className="text-[10px] text-emerald-400">Eating Helper PWA</p>
             </div>
@@ -46,15 +46,13 @@ export const InstallPromptModal: React.FC<InstallPromptModalProps> = ({
         {/* Content */}
         <div className="p-5 space-y-4 text-xs text-neutral-300">
           <p className="leading-relaxed">
-            {isPt
-              ? 'Instale a aplicação no seu telemóvel para ter acesso rápido, funcionamento offline e ecrã inteiro sem a barra do navegador.'
-              : 'Install the application on your phone for instant launch, offline access, and a full-screen experience.'}
+            {t.pwa.modalDesc}
           </p>
 
           {isIOS ? (
             <div className="space-y-3 bg-neutral-950/80 p-3.5 rounded-xl border border-neutral-800">
               <span className="text-[11px] font-semibold text-emerald-400 block mb-1">
-                {isPt ? 'Como instalar no iPhone / iPad (Safari):' : 'How to install on iPhone / iPad (Safari):'}
+                {t.pwa.iosTitle}
               </span>
 
               <div className="flex items-start gap-2.5">
@@ -62,9 +60,7 @@ export const InstallPromptModal: React.FC<InstallPromptModalProps> = ({
                   <Share className="w-3.5 h-3.5 text-sky-400" />
                 </div>
                 <span className="leading-tight">
-                  {isPt
-                    ? '1. No menu inferior do Safari, toque no botão de Compartilhar (Partilha).'
-                    : '1. In Safari bottom toolbar, tap the Share button.'}
+                  {t.pwa.iosStep1}
                 </span>
               </div>
 
@@ -73,9 +69,7 @@ export const InstallPromptModal: React.FC<InstallPromptModalProps> = ({
                   <PlusSquare className="w-3.5 h-3.5 text-emerald-400" />
                 </div>
                 <span className="leading-tight">
-                  {isPt
-                    ? '2. Desça a lista e toque em "Adicionar ao Ecrã Principal".'
-                    : '2. Scroll down and tap "Add to Home Screen".'}
+                  {t.pwa.iosStep2}
                 </span>
               </div>
 
@@ -84,21 +78,17 @@ export const InstallPromptModal: React.FC<InstallPromptModalProps> = ({
                   <Check className="w-3.5 h-3.5 text-emerald-400" />
                 </div>
                 <span className="leading-tight">
-                  {isPt
-                    ? '3. Toque em "Adicionar" no canto superior direito.'
-                    : '3. Tap "Add" in the top right corner.'}
+                  {t.pwa.iosStep3}
                 </span>
               </div>
             </div>
           ) : (
             <div className="bg-neutral-950/80 p-3.5 rounded-xl border border-neutral-800 space-y-1.5">
               <span className="text-[11px] font-semibold text-emerald-400 block">
-                {isPt ? 'No Android ou Chrome:' : 'On Android or Chrome:'}
+                {t.pwa.androidTitle}
               </span>
               <p className="text-[11px] text-neutral-400">
-                {isPt
-                  ? 'Abra o menu de 3 pontos do navegador e selecione "Instalar aplicação" ou "Adicionar ao ecrã inicial".'
-                  : 'Open the browser 3-dots menu and select "Install app" or "Add to Home screen".'}
+                {t.pwa.androidDesc}
               </p>
             </div>
           )}
@@ -110,7 +100,7 @@ export const InstallPromptModal: React.FC<InstallPromptModalProps> = ({
             onClick={onClose}
             className="w-full sm:w-auto px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold shadow transition-all active:scale-95"
           >
-            {isPt ? 'Entendido' : 'Got it'}
+            {t.pwa.understood}
           </button>
         </div>
       </div>

@@ -1,5 +1,6 @@
 import { DailyLog, NutritionPlan, MealType, DailyTargets } from '../../shared/types/nutrition';
 import { AppLanguage } from '../../shared/types/settings';
+import { getLanguageInfo } from '../../shared/i18n';
 
 export function determineCurrentMealType(hour: number): {
   type: MealType;
@@ -94,7 +95,7 @@ REGRAS ESSENCIAIS:
 - Substituições de fruta devem seguir rigorosamente a lista de equivalências de fruta.
 - Use sempre formatação Markdown elegante e limpa (títulos h3/h4, listas com marcadores, negritos, sem blocos maciços).
 - Mantenha respostas curtas, práticas, encorajadoras e diretas ao ponto.
-- Responda no idioma: ${lang === 'pt' ? 'Português de Portugal (PT-PT)' : 'Inglês'}.`;
+- Responda no idioma: ${getLanguageInfo(lang).promptInstruction}.`;
 }
 
 export function buildNextMealSuggestionPrompt(

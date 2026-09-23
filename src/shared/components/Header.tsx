@@ -2,6 +2,7 @@ import React from 'react';
 import { Sparkles, Settings, Globe, Bot, Download } from 'lucide-react';
 import { UserSettings, AVAILABLE_MODELS, GeminiModelId } from '../types/settings';
 import { TRANSLATIONS } from '../i18n/translations';
+import { SUPPORTED_LANGUAGES, getLanguageInfo } from '../i18n';
 
 interface HeaderProps {
   settings: UserSettings;
@@ -23,17 +24,25 @@ export const Header: React.FC<HeaderProps> = ({
   onInstallApp,
 }) => {
   const t = TRANSLATIONS[settings.language];
+  const currentLang = getLanguageInfo(settings.language);
 
   const handleModelChange = (modelId: GeminiModelId) => {
     onUpdateSettings({ ...settings, activeModel: modelId });
   };
 
-  const handleToggleLang = () => {
+  const handleCycleLang = () => {
+    const currentIndex = SUPPORTED_LANGUAGES.findIndex((l) => l.code === settings.language);
+    const nextIndex = (currentIndex + 1) % SUPPORTED_LANGUAGES.length;
     onUpdateSettings({
       ...settings,
-      language: settings.language === 'pt' ? 'en' : 'pt',
+      language: SUPPORTED_LANGUAGES[nextIndex].code,
     });
   };
+
+  const nextLang = SUPPORTED_LANGUAGES[
+    (SUPPORTED_LANGUAGES.findIndex((l) => l.code === settings.language) + 1) %
+      SUPPORTED_LANGUAGES.length
+  ];
 
   return (
     <header className="sticky top-0 z-30 w-full bg-neutral-950/85 backdrop-blur-md border-b border-neutral-800/80 px-3 sm:px-6 py-2.5 sm:py-3 transition-colors">
@@ -82,10 +91,10 @@ export const Header: React.FC<HeaderProps> = ({
             <button
               onClick={onInstallApp}
               className="flex items-center gap-1.5 bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/40 text-emerald-300 text-xs font-semibold px-2 py-1.5 rounded-lg transition-all active:scale-95"
-              title={settings.language === 'pt' ? 'Instalar Aplicação' : 'Install App'}
+              title={t.pwa.modalTitle}
             >
               <Download className="w-3.5 h-3.5 text-emerald-400" />
-              <span className="hidden md:inline">{settings.language === 'pt' ? 'Instalar' : 'Install'}</span>
+              <span className="hidden md:inline">{t.common.install}</span>
             </button>
           )}
 
@@ -93,19 +102,20 @@ export const Header: React.FC<HeaderProps> = ({
           <button
             onClick={onOpenAdvisorChat}
             className="flex items-center gap-1.5 bg-emerald-600/15 hover:bg-emerald-600/25 border border-emerald-500/30 text-emerald-400 text-xs font-semibold px-2.5 py-1.5 rounded-lg transition-all active:scale-95"
-            title={t.askAi}
+            title={t.nav.askAi}
           >
             <Bot className="w-3.5 h-3.5 text-emerald-400" />
-            <span className="hidden sm:inline">{t.askAi}</span>
+            <span className="hidden sm:inline">{t.nav.askAi}</span>
           </button>
 
-          {/* Language Switcher */}
+          {/* Multi-Language Switcher */}
           <button
-            onClick={handleToggleLang}
-            className="flex items-center gap-1 bg-neutral-900 border border-neutral-800 hover:border-neutral-700 text-neutral-300 text-xs px-2 py-1.5 rounded-lg transition-colors"
-            title={settings.language === 'pt' ? 'Mudar para Inglês' : 'Switch to Portuguese'}
+            onClick={handleCycleLang}
+            className="flex items-center gap-1 bg-neutral-900 border border-neutral-800 hover:border-neutral-700 text-neutral-300 text-xs px-2 py-1.5 rounded-lg transition-colors cursor-pointer"
+            title={`Switch to ${nextLang.name} (${nextLang.flag})`}
           >
             <Globe className="w-3.5 h-3.5 text-neutral-400" />
+            <span className="text-xs mr-0.5">{currentLang.flag}</span>
             <span className="font-semibold text-[11px] uppercase">{settings.language}</span>
           </button>
 
@@ -113,7 +123,7 @@ export const Header: React.FC<HeaderProps> = ({
           <button
             onClick={onOpenSettings}
             className="p-1.5 text-neutral-400 hover:text-neutral-100 bg-neutral-900 border border-neutral-800 hover:border-neutral-700 rounded-lg transition-colors"
-            title={t.settings}
+            title={t.settings.title}
           >
             <Settings className="w-4 h-4" />
           </button>

@@ -2,18 +2,22 @@ import React from 'react';
 import { Droplet, Plus, Minus, CheckCircle, AlertTriangle, PieChart } from 'lucide-react';
 import { DailyHabits } from '../../shared/types/nutrition';
 import { Card } from '../../shared/components/Card';
+import { getTranslation } from '../../shared/i18n';
 
 interface HabitTrackersProps {
   habits: DailyHabits;
   onUpdateHabits: (newHabits: DailyHabits) => void;
   plateAdherenceCount: { adhered: number; totalMainMeals: number };
+  lang?: string;
 }
 
 export const HabitTrackers: React.FC<HabitTrackersProps> = ({
   habits,
   onUpdateHabits,
   plateAdherenceCount,
+  lang = 'pt',
 }) => {
+  const t = getTranslation(lang);
   const waterTarget = 2000;
   const waterPercent = Math.min(100, Math.round((habits.waterMl / waterTarget) * 100));
 
@@ -35,7 +39,7 @@ export const HabitTrackers: React.FC<HabitTrackersProps> = ({
               <Droplet className="w-4 h-4" />
             </div>
             <div>
-              <span className="text-[10px] font-semibold text-neutral-400 uppercase">Água (2L)</span>
+              <span className="text-[10px] font-semibold text-neutral-400 uppercase">{t.habits.water}</span>
               <div className="text-sm font-bold text-neutral-100 font-mono">
                 {habits.waterMl} <span className="text-xs text-neutral-500 font-normal">/ 2000 ml</span>
               </div>
@@ -58,13 +62,13 @@ export const HabitTrackers: React.FC<HabitTrackersProps> = ({
             onClick={() => addWater(250)}
             className="flex-1 flex items-center justify-center gap-1 py-1 rounded-lg bg-neutral-950 hover:bg-neutral-800 border border-neutral-800 text-[11px] font-semibold text-neutral-200 transition-colors"
           >
-            <Plus className="w-3 h-3 text-sky-400" /> 250ml
+            <Plus className="w-3 h-3 text-sky-400" /> {t.habits.addWater250}
           </button>
           <button
             onClick={() => addWater(500)}
             className="flex-1 flex items-center justify-center gap-1 py-1 rounded-lg bg-neutral-950 hover:bg-neutral-800 border border-neutral-800 text-[11px] font-semibold text-neutral-200 transition-colors"
           >
-            <Plus className="w-3 h-3 text-sky-400" /> 500ml
+            <Plus className="w-3 h-3 text-sky-400" /> {t.habits.addWater500}
           </button>
           <button
             onClick={() => addWater(-250)}
@@ -92,16 +96,16 @@ export const HabitTrackers: React.FC<HabitTrackersProps> = ({
               )}
             </div>
             <div>
-              <span className="text-[10px] font-semibold text-neutral-400 uppercase">Cola Zero</span>
+              <span className="text-[10px] font-semibold text-neutral-400 uppercase">{t.habits.soda}</span>
               <div className="text-sm font-bold text-neutral-100 font-mono">
-                {habits.sodaCount} <span className="text-xs text-neutral-500 font-normal">/ máx 1 lata</span>
+                {habits.sodaCount} <span className="text-xs text-neutral-500 font-normal">{t.habits.sodaMax1}</span>
               </div>
             </div>
           </div>
         </div>
 
         <p className="text-[10px] text-neutral-400">
-          {habits.sodaCount <= 1 ? 'Dentro do compromisso do plano' : '⚠️ Limite diário ultrapassado!'}
+          {habits.sodaCount <= 1 ? t.habits.sodaOk : t.habits.sodaExceeded}
         </p>
 
         {/* Increment / Decrement */}
@@ -110,7 +114,7 @@ export const HabitTrackers: React.FC<HabitTrackersProps> = ({
             onClick={() => updateSoda(1)}
             className="flex-1 flex items-center justify-center gap-1 py-1 rounded-lg bg-neutral-950 hover:bg-neutral-800 border border-neutral-800 text-[11px] font-semibold text-neutral-200 transition-colors"
           >
-            <Plus className="w-3 h-3 text-emerald-400" /> +1 Lata
+            <Plus className="w-3 h-3 text-emerald-400" /> {t.habits.addSoda}
           </button>
           <button
             onClick={() => updateSoda(-1)}
@@ -130,16 +134,16 @@ export const HabitTrackers: React.FC<HabitTrackersProps> = ({
               <PieChart className="w-4 h-4" />
             </div>
             <div>
-              <span className="text-[10px] font-semibold text-neutral-400 uppercase">Regra do Prato</span>
+              <span className="text-[10px] font-semibold text-neutral-400 uppercase">{t.habits.plateRule}</span>
               <div className="text-sm font-bold text-neutral-100 font-mono">
-                {plateAdherenceCount.adhered} <span className="text-xs text-neutral-500 font-normal">/ {plateAdherenceCount.totalMainMeals} principais</span>
+                {plateAdherenceCount.adhered} <span className="text-xs text-neutral-500 font-normal">/ {plateAdherenceCount.totalMainMeals} {t.habits.mainMeals}</span>
               </div>
             </div>
           </div>
         </div>
 
         <p className="text-[10px] text-neutral-400 leading-tight">
-          1/2 hortícolas, 1/4 hidratos, 1/4 proteína em refeições completas.
+          {t.habits.plateSubtitle}
         </p>
       </Card>
     </div>

@@ -2,22 +2,26 @@ import React from 'react';
 import { Calendar, ChevronRight, Droplet, Flame, Utensils } from 'lucide-react';
 import { DailyLog } from '../../shared/types/nutrition';
 import { Card } from '../../shared/components/Card';
+import { getTranslation } from '../../shared/i18n';
 
 interface HistoryListProps {
   logs: DailyLog[];
   onSelectDate: (date: string) => void;
+  lang?: string;
 }
 
-export const HistoryList: React.FC<HistoryListProps> = ({ logs, onSelectDate }) => {
+export const HistoryList: React.FC<HistoryListProps> = ({ logs, onSelectDate, lang = 'pt' }) => {
+  const t = getTranslation(lang);
+
   return (
     <div className="space-y-3">
       <h3 className="text-xs font-bold uppercase tracking-wider text-neutral-400">
-        Histórico de Registos Diários ({logs.length})
+        {t.metrics.dailyLogsHistory} ({logs.length})
       </h3>
 
       {logs.length === 0 ? (
         <Card className="text-center p-8 text-neutral-500 text-xs">
-          Nenhum registo histórico encontrado.
+          {t.metrics.noLogsFound}
         </Card>
       ) : (
         <div className="space-y-2">
@@ -37,7 +41,7 @@ export const HistoryList: React.FC<HistoryListProps> = ({ logs, onSelectDate }) 
                   </h4>
                   <div className="flex items-center gap-2.5 text-[11px] text-neutral-400 mt-0.5">
                     <span className="flex items-center gap-1">
-                      <Utensils className="w-3 h-3 text-neutral-500" /> {log.meals.length} refeições
+                      <Utensils className="w-3 h-3 text-neutral-500" /> {log.meals.length} {t.metrics.mealsCount}
                     </span>
                     <span className="flex items-center gap-1">
                       <Droplet className="w-3 h-3 text-sky-400" /> {log.habits.waterMl}ml
@@ -53,7 +57,7 @@ export const HistoryList: React.FC<HistoryListProps> = ({ logs, onSelectDate }) 
                     {log.dayTotals.calories} kcal
                   </span>
                   <span className="text-[10px] text-neutral-500 font-mono block">
-                    P:{log.dayTotals.protein}g H:{log.dayTotals.carbs}g G:{log.dayTotals.fat}g
+                    {t.macros.proteinShort}:{log.dayTotals.protein}g {t.macros.carbsShort}:{log.dayTotals.carbs}g {t.macros.fatShort}:{log.dayTotals.fat}g
                   </span>
                 </div>
                 <ChevronRight className="w-4 h-4 text-neutral-500" />

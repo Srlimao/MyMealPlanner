@@ -1,3 +1,4 @@
+import React from 'react';
 import { ChevronLeft, ChevronRight, Plus, UtensilsCrossed, Calendar } from 'lucide-react';
 import { DailyLog, NutritionPlan, MealType } from '../../shared/types/nutrition';
 import { UserSettings } from '../../shared/types/settings';
@@ -82,7 +83,7 @@ export const DayView: React.FC<DayViewProps> = ({
         <button
           onClick={handlePrevDay}
           className="p-1.5 sm:p-2 text-neutral-400 hover:text-neutral-100 rounded-xl hover:bg-neutral-800 transition-colors"
-          title="Dia Anterior"
+          title={t.dashboard.prevDay}
         >
           <ChevronLeft className="w-5 h-5" />
         </button>
@@ -90,7 +91,7 @@ export const DayView: React.FC<DayViewProps> = ({
         <div className="flex items-center gap-2">
           <Calendar className="w-4 h-4 text-emerald-400" />
           <span className="text-xs sm:text-sm font-bold text-neutral-100 font-mono">
-            {isToday ? (settings.language === 'pt' ? 'Hoje, ' : 'Today, ') : ''}
+            {isToday ? `${t.dashboard.today}, ` : ''}
             {currentDate}
           </span>
         </div>
@@ -99,7 +100,7 @@ export const DayView: React.FC<DayViewProps> = ({
           <button
             onClick={handleNextDay}
             className="p-1.5 sm:p-2 text-neutral-400 hover:text-neutral-100 rounded-xl hover:bg-neutral-800 transition-colors"
-            title="Dia Seguinte"
+            title={t.dashboard.nextDay}
           >
             <ChevronRight className="w-5 h-5" />
           </button>
@@ -109,7 +110,7 @@ export const DayView: React.FC<DayViewProps> = ({
             className="flex items-center gap-1.5 px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold shadow-md shadow-emerald-950/50 transition-all active:scale-95 ml-1"
           >
             <Plus className="w-4 h-4" />
-            <span className="hidden xs:inline">{t.quickLog}</span>
+            <span className="hidden xs:inline">{t.dashboard.quickLog}</span>
           </button>
         </div>
       </div>
@@ -125,7 +126,11 @@ export const DayView: React.FC<DayViewProps> = ({
       )}
 
       {/* Macronutrient Progress Bars */}
-      <MacroProgressBars totals={dailyLog.dayTotals} targets={settings.targets} />
+      <MacroProgressBars
+        totals={dailyLog.dayTotals}
+        targets={settings.targets}
+        lang={settings.language}
+      />
 
       {/* Nutritionist Daily Habit Trackers */}
       <HabitTrackers
@@ -138,13 +143,14 @@ export const DayView: React.FC<DayViewProps> = ({
           })
         }
         plateAdherenceCount={plateAdherence}
+        lang={settings.language}
       />
 
       {/* Meals Log Section */}
       <div className="space-y-3 pt-1">
         <div className="flex items-center justify-between">
           <h3 className="text-xs font-bold text-neutral-400 uppercase tracking-wider">
-            Refeições Registadas ({dailyLog.meals.length})
+            {t.dashboard.loggedMeals} ({dailyLog.meals.length})
           </h3>
         </div>
 
@@ -154,9 +160,9 @@ export const DayView: React.FC<DayViewProps> = ({
               <UtensilsCrossed className="w-6 h-6" />
             </div>
             <div>
-              <p className="text-sm font-medium text-neutral-300">{t.noMealsToday}</p>
+              <p className="text-sm font-medium text-neutral-300">{t.dashboard.noMealsToday}</p>
               <p className="text-xs text-neutral-500 mt-0.5">
-                Tire uma foto ou descreva o que comeu para o Gemini calcular calorias e nutrientes.
+                {t.dashboard.noMealsSubtitle}
               </p>
             </div>
             <button
@@ -164,7 +170,7 @@ export const DayView: React.FC<DayViewProps> = ({
               className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-neutral-800 hover:bg-neutral-700 text-neutral-200 text-xs font-semibold transition-colors"
             >
               <Plus className="w-4 h-4 text-emerald-400" />
-              <span>Registar Primeira Refeição</span>
+              <span>{t.dashboard.logFirstMeal}</span>
             </button>
           </div>
         ) : (

@@ -5,6 +5,7 @@ import { UserSettings } from '../../shared/types/settings';
 import { buildAdvisorSystemPrompt, formatDailyConsumptionContext } from './advisorPrompt';
 import { geminiService } from '../../shared/services/geminiService';
 import { MarkdownViewer } from '../../shared/components/MarkdownViewer';
+import { getTranslation } from '../../shared/i18n';
 
 interface Message {
   id: string;
@@ -21,13 +22,6 @@ interface AdvisorChatDrawerProps {
   settings: UserSettings;
 }
 
-const QUICK_QUESTIONS = [
-  'Posso comer pão ao lanche hoje?',
-  'Que fruta substitui 1 banana de 80g?',
-  'Vou jantar fora hoje, que conselhos sigo?',
-  'Como dividir o prato ao almoço?',
-];
-
 export const AdvisorChatDrawer: React.FC<AdvisorChatDrawerProps> = ({
   isOpen,
   onClose,
@@ -35,20 +29,28 @@ export const AdvisorChatDrawer: React.FC<AdvisorChatDrawerProps> = ({
   nutritionPlan,
   settings,
 }) => {
+  const t = getTranslation(settings.language);
+
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 'welcome',
       sender: 'assistant',
-      text:
-        settings.language === 'pt'
-          ? 'Olá Willian! Estou aqui para te ajudar com o teu plano alimentar da nutricionista Nélia Filipe. O que gostarias de saber ou ajustar hoje?'
-          : 'Hello Willian! I am here to help you follow your nutrition plan by Nélia Filipe. What would you like to know or adjust today?',
+      text: t.advisor.welcomeMessage,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
     },
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Update initial welcome message if language changes
+  useEffect(() => {
+    setMessages((prev) =>
+      prev.map((m) =>
+        m.id === 'welcome' ? { ...m, text: t.advisor.welcomeMessage } : m
+      )
+    );
+  }, [t.advisor.welcomeMessage]);
 
   useEffect(() => {
     if (isOpen) {
@@ -114,8 +116,8 @@ export const AdvisorChatDrawer: React.FC<AdvisorChatDrawerProps> = ({
               <Bot className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="text-sm font-bold text-neutral-100">Assistente Nutricional</h3>
-              <p className="text-[10px] text-emerald-400">Nutricionista Nélia Filipe Base</p>
+              <h3 className="text-sm font-bold text-neutral-100">{t.advisor.title}</h3>
+              <p className="text-[10px] text-emerald-400">{t.advisor.subtitle}</p>
             </div>
           </div>
           <button
@@ -168,7 +170,7 @@ export const AdvisorChatDrawer: React.FC<AdvisorChatDrawerProps> = ({
           {loading && (
             <div className="flex items-center gap-2 text-xs text-neutral-400 pl-8">
               <Loader2 className="w-3.5 h-3.5 animate-spin text-emerald-400" />
-              <span>A consultar o plano alimentar...</span>
+              <span>{t.advisor.consultingPlan}</span>
             </div>
           )}
           <div ref={messagesEndRef} />
@@ -176,11 +178,11 @@ export const AdvisorChatDrawer: React.FC<AdvisorChatDrawerProps> = ({
 
         {/* Quick Question Pills */}
         <div className="px-3 py-2 border-t border-neutral-800/80 bg-neutral-950/40 overflow-x-auto flex gap-1.5 no-scrollbar">
-          {QUICK_QUESTIONS.map((q, idx) => (
+          {t.advisor.quickQuestions.map((q, idx) => (
             <button
               key={idx}
               onClick={() => handleSend(q)}
-              className="text-[11px] whitespace-nowrap bg-neutral-900 border border-neutral-800 hover:border-emerald-500/40 text-neutral-300 px-2.5 py-1 rounded-full transition-all shrink-0 active:scale-95"
+              className="text-[11px] whitespace-nowrap bg-neutral-900 border border-neutral-800 hover:border-emerald-500/40 text-neutral-300 px-2.5 py-1 rounded-full transition-all shrink-0 active:scale-95 cursor-pointer"
             >
               {q}
             </button>
@@ -194,13 +196,13 @@ export const AdvisorChatDrawer: React.FC<AdvisorChatDrawerProps> = ({
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSend(input)}
-            placeholder="Escreve uma pergunta sobre o teu plano..."
+            placeholder={t.advisor.inputPlaceholder}
             className="flex-1 bg-neutral-900 border border-neutral-800 focus:border-emerald-500 rounded-xl px-3.5 py-2 text-xs text-neutral-100 placeholder-neutral-500 focus:outline-none"
           />
           <button
             onClick={() => handleSend(input)}
             disabled={!input.trim() || loading}
-            className="p-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 text-white transition-all shrink-0"
+            className="p-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 text-white transition-all shrink-0 cursor-pointer"
           >
             <Send className="w-4 h-4" />
           </button>

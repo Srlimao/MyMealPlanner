@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { X, Check, Plus, Trash2, Scale } from 'lucide-react';
 import { MealEntry, FoodItem, MealType } from '../../shared/types/nutrition';
-import { MEAL_NAMES } from '../../shared/i18n/translations';
 import { AppLanguage } from '../../shared/types/settings';
+import { getTranslation, getMealNames } from '../../shared/i18n';
 
 interface MealReviewModalProps {
   isOpen: boolean;
@@ -19,6 +19,9 @@ export const MealReviewModal: React.FC<MealReviewModalProps> = ({
   onConfirm,
   lang,
 }) => {
+  const t = getTranslation(lang);
+  const mealNames = getMealNames(lang);
+
   const [mealType, setMealType] = useState<MealType>(initialMeal.mealType || 'almoco');
   const [mealName, setMealName] = useState<string>(initialMeal.name || 'Refeição');
   const [items, setItems] = useState<FoodItem[]>(
@@ -52,7 +55,7 @@ export const MealReviewModal: React.FC<MealReviewModalProps> = ({
       ...prev,
       {
         id: `it_${Date.now()}`,
-        name: 'Novo Item',
+        name: t.logger.newItem,
         portion: '100g',
         calories: 100,
         protein: 5,
@@ -88,7 +91,7 @@ export const MealReviewModal: React.FC<MealReviewModalProps> = ({
         <div className="flex items-center justify-between px-5 py-3.5 border-b border-neutral-800 shrink-0 bg-neutral-950/60">
           <div className="flex items-center gap-2">
             <Scale className="w-4 h-4 text-emerald-400" />
-            <h2 className="text-sm font-bold text-neutral-100">Rever Nutrientes da Refeição</h2>
+            <h2 className="text-sm font-bold text-neutral-100">{t.logger.reviewNutrientsTitle}</h2>
           </div>
           <button onClick={onClose} className="p-1.5 text-neutral-400 hover:text-neutral-100 rounded-lg">
             <X className="w-4 h-4" />
@@ -100,7 +103,7 @@ export const MealReviewModal: React.FC<MealReviewModalProps> = ({
           {/* Meal Name & Type */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
             <div className="sm:col-span-2">
-              <label className="text-[11px] font-semibold text-neutral-400 uppercase">Nome da Refeição</label>
+              <label className="text-[11px] font-semibold text-neutral-400 uppercase">{t.logger.mealNameLabel}</label>
               <input
                 type="text"
                 value={mealName}
@@ -109,13 +112,13 @@ export const MealReviewModal: React.FC<MealReviewModalProps> = ({
               />
             </div>
             <div>
-              <label className="text-[11px] font-semibold text-neutral-400 uppercase">Tipo</label>
+              <label className="text-[11px] font-semibold text-neutral-400 uppercase">{t.logger.mealTypeLabel}</label>
               <select
                 value={mealType}
                 onChange={(e) => setMealType(e.target.value as MealType)}
                 className="w-full bg-neutral-950 border border-neutral-800 rounded-xl px-2.5 py-1.5 text-xs text-neutral-200 mt-1 focus:border-emerald-500 focus:outline-none"
               >
-                {Object.entries(MEAL_NAMES[lang]).map(([type, label]) => (
+                {Object.entries(mealNames).map(([type, label]) => (
                   <option key={type} value={type}>
                     {label}
                   </option>
@@ -127,13 +130,13 @@ export const MealReviewModal: React.FC<MealReviewModalProps> = ({
           {/* Items breakdown list */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold text-neutral-300">Alimentos Identificados</span>
+              <span className="text-xs font-semibold text-neutral-300">{t.logger.identifiedFoods}</span>
               <button
                 type="button"
                 onClick={handleAddItem}
-                className="flex items-center gap-1 text-[11px] font-semibold text-emerald-400 hover:text-emerald-300"
+                className="flex items-center gap-1 text-[11px] font-semibold text-emerald-400 hover:text-emerald-300 cursor-pointer"
               >
-                <Plus className="w-3.5 h-3.5" /> Adicionar
+                <Plus className="w-3.5 h-3.5" /> {t.logger.addItem}
               </button>
             </div>
 
@@ -148,14 +151,14 @@ export const MealReviewModal: React.FC<MealReviewModalProps> = ({
                     value={item.name}
                     onChange={(e) => handleUpdateItem(idx, 'name', e.target.value)}
                     className="flex-1 min-w-[120px] bg-transparent border-0 text-xs font-medium text-neutral-200 focus:outline-none"
-                    placeholder="Alimento"
+                    placeholder={t.logger.foodNamePlaceholder}
                   />
                   <input
                     type="text"
                     value={item.portion}
                     onChange={(e) => handleUpdateItem(idx, 'portion', e.target.value)}
                     className="w-16 bg-neutral-900 border border-neutral-800 rounded px-1.5 py-1 text-[11px] text-neutral-300 text-center"
-                    placeholder="100g"
+                    placeholder={t.logger.portionPlaceholder}
                   />
                   <div className="flex items-center gap-1">
                     <span className="text-[10px] text-neutral-500">kcal:</span>
@@ -169,7 +172,7 @@ export const MealReviewModal: React.FC<MealReviewModalProps> = ({
                   <button
                     type="button"
                     onClick={() => handleRemoveItem(idx)}
-                    className="p-1 text-neutral-500 hover:text-rose-400"
+                    className="p-1 text-neutral-500 hover:text-rose-400 cursor-pointer"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
                   </button>
@@ -188,10 +191,10 @@ export const MealReviewModal: React.FC<MealReviewModalProps> = ({
             />
             <div className="text-[11px] leading-tight">
               <span className="font-semibold text-neutral-200 block">
-                Cumpre a regra do prato (1/2 hortícolas, 1/4 hidratos, 1/4 proteína)
+                {t.logger.plateRuleCheck}
               </span>
               <span className="text-neutral-500 text-[10px]">
-                Recomendação essencial da nutricionista Nélia Filipe para almoço/jantar.
+                {t.logger.plateRuleHint}
               </span>
             </div>
           </label>
@@ -199,25 +202,25 @@ export const MealReviewModal: React.FC<MealReviewModalProps> = ({
           {/* Aggregated Totals Banner */}
           <div className="grid grid-cols-4 gap-2 bg-neutral-950 p-3 rounded-xl border border-neutral-800 text-center">
             <div>
-              <span className="text-[10px] text-neutral-500 uppercase">Calorias</span>
+              <span className="text-[10px] text-neutral-500 uppercase">{t.macros.calories}</span>
               <span className="block text-sm font-bold text-emerald-400 font-mono">
                 {Math.round(totalCalories)} <span className="text-[9px] font-normal">kcal</span>
               </span>
             </div>
             <div>
-              <span className="text-[10px] text-neutral-500 uppercase">Proteína</span>
+              <span className="text-[10px] text-neutral-500 uppercase">{t.macros.protein}</span>
               <span className="block text-sm font-bold text-neutral-200 font-mono">
                 {Math.round(totalProtein)}g
               </span>
             </div>
             <div>
-              <span className="text-[10px] text-neutral-500 uppercase">Hidratos</span>
+              <span className="text-[10px] text-neutral-500 uppercase">{t.macros.carbs}</span>
               <span className="block text-sm font-bold text-neutral-200 font-mono">
                 {Math.round(totalCarbs)}g
               </span>
             </div>
             <div>
-              <span className="text-[10px] text-neutral-500 uppercase">Gordura</span>
+              <span className="text-[10px] text-neutral-500 uppercase">{t.macros.fat}</span>
               <span className="block text-sm font-bold text-neutral-200 font-mono">
                 {Math.round(totalFat)}g
               </span>
@@ -232,15 +235,15 @@ export const MealReviewModal: React.FC<MealReviewModalProps> = ({
             onClick={onClose}
             className="px-3.5 py-1.5 rounded-lg text-xs font-medium text-neutral-400 hover:text-neutral-200"
           >
-            Cancelar
+            {t.common.cancel}
           </button>
           <button
             type="button"
             onClick={handleSave}
-            className="flex items-center gap-1.5 px-4 py-1.5 rounded-xl text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white shadow-md shadow-emerald-950/50"
+            className="flex items-center gap-1.5 px-4 py-1.5 rounded-xl text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white shadow-md shadow-emerald-950/50 cursor-pointer"
           >
             <Check className="w-4 h-4" />
-            <span>Confirmar e Guardar</span>
+            <span>{t.logger.confirmAndSave}</span>
           </button>
         </div>
       </div>

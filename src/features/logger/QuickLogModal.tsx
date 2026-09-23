@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import { X, Camera, Type, Loader2, Sparkles, AlertCircle } from 'lucide-react';
 import { MealEntry, MealType } from '../../shared/types/nutrition';
 import { UserSettings } from '../../shared/types/settings';
-import { MEAL_NAMES } from '../../shared/i18n/translations';
+import { getTranslation, getMealNames } from '../../shared/i18n';
 import { processMealImage } from './PhotoProcessor';
 import { buildMealExtractionPrompt } from './parserPrompt';
 import { geminiService } from '../../shared/services/geminiService';
@@ -35,6 +35,8 @@ export const QuickLogModal: React.FC<QuickLogModalProps> = ({
   const [mealType, setMealType] = useState<MealType>(initialMealType);
 
   if (!isOpen) return null;
+  const t = getTranslation(settings.language);
+  const mealNames = getMealNames(settings.language);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -47,11 +49,11 @@ export const QuickLogModal: React.FC<QuickLogModalProps> = ({
 
   const handleAnalyze = async () => {
     if (tab === 'photo' && !selectedFile) {
-      setError('Por favor, tire uma fotografia ou selecione uma imagem.');
+      setError(t.logger.photoRequired);
       return;
     }
     if (tab === 'text' && !textInput.trim()) {
-      setError('Por favor, descreva o que comeu.');
+      setError(t.logger.textRequired);
       return;
     }
 
@@ -75,7 +77,6 @@ export const QuickLogModal: React.FC<QuickLogModalProps> = ({
         settings.activeModel
       );
 
-      // Clean markdown code blocks if any
       let cleanedJson = response.data.trim();
       if (cleanedJson.startsWith('```')) {
         cleanedJson = cleanedJson.replace(/^```json\s*/, '').replace(/^```\s*/, '').replace(/```$/, '').trim();
@@ -87,7 +88,7 @@ export const QuickLogModal: React.FC<QuickLogModalProps> = ({
     } catch (err: unknown) {
       console.error('Gemini extraction error', err);
       setError(
-        err instanceof Error ? err.message : 'Falha ao analisar a refeição. Tente novamente.'
+        err instanceof Error ? err.message : t.logger.genericError
       );
     } finally {
       setLoading(false);
@@ -101,7 +102,7 @@ export const QuickLogModal: React.FC<QuickLogModalProps> = ({
         <div className="flex items-center justify-between px-5 py-3.5 border-b border-neutral-800 bg-neutral-950/60">
           <div className="flex items-center gap-2">
             <Sparkles className="w-4 h-4 text-emerald-400" />
-            <h2 className="text-sm font-bold text-neutral-100">Registar Refeição</h2>
+            <h2 className="text-sm font-bold text-neutral-100">{t.logger.quickLogTitle}</h2>
           </div>
           <button onClick={onClose} className="p-1.5 text-neutral-400 hover:text-neutral-100 rounded-lg">
             <X className="w-4 h-4" />
@@ -119,7 +120,7 @@ export const QuickLogModal: React.FC<QuickLogModalProps> = ({
             }`}
           >
             <Camera className="w-3.5 h-3.5" />
-            <span>Foto da Refeição</span>
+            <span>{t.logger.photoTab}</span>
           </button>
           <button
             onClick={() => setTab('text')}
@@ -130,7 +131,7 @@ export const QuickLogModal: React.FC<QuickLogModalProps> = ({
             }`}
           >
             <Type className="w-3.5 h-3.5" />
-            <span>Descrever em Texto</span>
+            <span>{t.logger.textTab}</span>
           </button>
         </div>
 
@@ -139,14 +140,14 @@ export const QuickLogModal: React.FC<QuickLogModalProps> = ({
           {/* Meal Type selection */}
           <div>
             <label className="text-[11px] font-semibold text-neutral-400 uppercase">
-              Tipo de Refeição
+              {t.logger.mealTypeLabel}
             </label>
             <select
               value={mealType}
               onChange={(e) => setMealType(e.target.value as MealType)}
               className="w-full bg-neutral-950 border border-neutral-800 rounded-xl px-3 py-2 text-xs text-neutral-200 mt-1 focus:border-emerald-500 focus:outline-none"
             >
-              {Object.entries(MEAL_NAMES[settings.language]).map(([type, label]) => (
+              {Object.entries(mealNames).map(([type, label]) => (
                 <option key={type} value={type}>
                   {label}
                 </option>
@@ -173,23 +174,23 @@ export const QuickLogModal: React.FC<QuickLogModalProps> = ({
                     onClick={() => fileInputRef.current?.click()}
                     className="absolute bottom-2 right-2 bg-neutral-900/90 hover:bg-neutral-900 text-xs text-neutral-200 px-2.5 py-1 rounded-lg border border-neutral-700"
                   >
-                    Trocar Foto
+                    {t.logger.changePhoto}
                   </button>
                 </div>
               ) : (
                 <button
                   type="button"
                   onClick={() => fileInputRef.current?.click()}
-                  className="w-full py-8 border-2 border-dashed border-neutral-800 hover:border-emerald-500/50 rounded-2xl flex flex-col items-center justify-center gap-2 bg-neutral-950/50 hover:bg-neutral-950 transition-colors group"
+                  className="w-full py-8 border-2 border-dashed border-neutral-800 hover:border-emerald-500/50 rounded-2xl flex flex-col items-center justify-center gap-2 bg-neutral-950/50 hover:bg-neutral-950 transition-colors group cursor-pointer"
                 >
                   <div className="w-10 h-10 rounded-full bg-neutral-900 flex items-center justify-center text-neutral-400 group-hover:text-emerald-400 transition-colors">
                     <Camera className="w-5 h-5" />
                   </div>
                   <span className="text-xs font-medium text-neutral-300">
-                    Clique para tirar foto ou escolher ficheiro
+                    {t.logger.photoUploadPrompt}
                   </span>
                   <span className="text-[10px] text-neutral-500">
-                    O Gemini identificará os alimentos e quantidades
+                    {t.logger.photoUploadSub}
                   </span>
                 </button>
               )}
@@ -200,12 +201,12 @@ export const QuickLogModal: React.FC<QuickLogModalProps> = ({
           {tab === 'text' && (
             <div className="space-y-1.5">
               <label className="text-[11px] font-semibold text-neutral-400 uppercase">
-                O que comeu?
+                {t.logger.whatDidYouEat}
               </label>
               <textarea
                 value={textInput}
                 onChange={(e) => setTextInput(e.target.value)}
-                placeholder="Ex: 140g peito de frango com 4 colheres de sopa de arroz branco e salada de alface e tomate."
+                placeholder={t.logger.textPlaceholder}
                 rows={4}
                 className="w-full bg-neutral-950 border border-neutral-800 rounded-xl p-3 text-xs text-neutral-100 placeholder-neutral-600 focus:border-emerald-500 focus:outline-none"
               />
@@ -227,23 +228,23 @@ export const QuickLogModal: React.FC<QuickLogModalProps> = ({
             onClick={onClose}
             className="px-3.5 py-1.5 rounded-lg text-xs font-medium text-neutral-400 hover:text-neutral-200"
           >
-            Cancelar
+            {t.common.cancel}
           </button>
           <button
             type="button"
             onClick={handleAnalyze}
             disabled={loading}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white shadow-md shadow-emerald-950/50 transition-all active:scale-95"
+            className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white shadow-md shadow-emerald-950/50 transition-all active:scale-95 cursor-pointer"
           >
             {loading ? (
               <>
                 <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                <span>A analisar nutrientes...</span>
+                <span>{t.logger.analyzing}</span>
               </>
             ) : (
               <>
                 <Sparkles className="w-3.5 h-3.5" />
-                <span>Analisar com Gemini</span>
+                <span>{t.logger.analyzeBtn}</span>
               </>
             )}
           </button>
