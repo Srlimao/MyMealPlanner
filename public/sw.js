@@ -45,7 +45,8 @@ self.addEventListener('fetch', (event) => {
         fetch(event.request)
           .then((networkResponse) => {
             if (networkResponse && networkResponse.status === 200) {
-              caches.open(CACHE_NAME).then((cache) => cache.put(event.request, networkResponse));
+              const responseClone = networkResponse.clone();
+              caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseClone));
             }
           })
           .catch(() => {});
@@ -60,7 +61,7 @@ self.addEventListener('fetch', (event) => {
         return networkResponse;
       }).catch(() => {
         if (event.request.mode === 'navigate') {
-          return caches.match('./') || caches.match('./index.html');
+          return caches.match('./').then((res) => res || caches.match('./index.html'));
         }
       });
     })

@@ -5,7 +5,6 @@ export type GeminiModelId =
   | 'gemini-3.5-flash-lite'
   | 'gemini-3.1-flash-lite'
   | 'gemini-2.5-flash'
-  | 'gemini-2.5-flash-lite'
   | 'gemini-2.0-flash'
   | 'gemini-2.0-flash-lite'
   | 'gemma-4-26b-a4b-it'
@@ -20,52 +19,52 @@ export interface ModelOption {
 
 export const AVAILABLE_MODELS: ModelOption[] = [
   {
-    id: 'gemini-3.8-flash',
-    name: 'Gemini 3.8 Flash',
-    badge: 'State of Art',
-    description: 'Flagship frontier speed & high-reasoning multimodal model.',
-  },
-  {
     id: 'gemini-3.5-flash-lite',
     name: 'Gemini 3.5 Flash-Lite',
-    badge: 'Ultra Fast',
-    description: 'Next-gen high-efficiency, lowest latency multimodal model.',
+    badge: '500 RPD • Recomendado',
+    description: 'Ultra rápido com raciocínio nativo e cota generosa de 500 req/dia.',
   },
   {
     id: 'gemini-3.1-flash-lite',
     name: 'Gemini 3.1 Flash-Lite',
-    badge: 'Efficient',
-    description: 'High-throughput, cost-effective multimodal model.',
+    badge: '500 RPD • Eficiente',
+    description: 'Alta eficiência e rendimento com cota de 500 req/dia.',
+  },
+  {
+    id: 'gemini-3.8-flash',
+    name: 'Gemini 3.8 Flash',
+    badge: 'Top Frontier • 20 RPD Free',
+    description: 'Raciocínio avançado (Thinking). Cota de 20 req/dia no plano gratuito.',
   },
   {
     id: 'gemini-2.5-flash',
     name: 'Gemini 2.5 Flash',
-    badge: 'Fast & Smart',
-    description: 'Flagship multimodal model with deep reasoning.',
-  },
-  {
-    id: 'gemini-2.0-flash',
-    name: 'Gemini 2.0 Flash',
-    badge: 'Reliable',
-    description: 'High throughput, high accuracy multimodal analysis.',
-  },
-  {
-    id: 'gemini-2.0-flash-lite',
-    name: 'Gemini 2.0 Flash-Lite',
-    badge: 'Lightweight',
-    description: 'Fast token consumption and low latency.',
+    badge: 'Fast & Smart • 20 RPD Free',
+    description: 'Raciocínio multimodal com cota de 20 req/dia no plano gratuito.',
   },
   {
     id: 'gemma-4-26b-a4b-it',
     name: 'Gemma 4 26B',
-    badge: 'Open MoE',
-    description: 'DeepMind open-weights multimodal Mixture-of-Experts model.',
+    badge: 'Reserva • 14.400 RPD',
+    description: 'Modelo aberto MoE de alta capacidade com 14.400 requisições diárias.',
+  },
+  {
+    id: 'gemini-2.0-flash',
+    name: 'Gemini 2.0 Flash',
+    badge: 'Standard Tier',
+    description: 'Alta precisão multimodal para chaves Standard com faturação.',
+  },
+  {
+    id: 'gemini-2.0-flash-lite',
+    name: 'Gemini 2.0 Flash-Lite',
+    badge: 'Standard Tier',
+    description: 'Consumo rápido de tokens e baixa latência em Standard.',
   },
   {
     id: 'gemini-1.5-flash',
     name: 'Gemini 1.5 Flash',
-    badge: 'Stable Legacy',
-    description: 'Proven fallback model for image & text processing.',
+    badge: 'Legado Estável',
+    description: 'Modelo de fallback comprovado para processamento multimodal.',
   },
 ];
 
@@ -92,10 +91,10 @@ export const DEFAULT_TARGETS: DailyTargets = {
 
 export const DEFAULT_USER_SETTINGS: UserSettings = {
   geminiApiKey: '',
-  activeModel: 'gemini-2.5-flash',
+  activeModel: 'gemini-3.5-flash-lite',
   autoFallbackOnRateLimit: true,
   language: 'pt',
   targets: DEFAULT_TARGETS,
   remoteDbUrl: 'https://db.dunhas.com/api',
-  remoteDbApiKey: '1b4a19fdc1eda3f481543b0f25b01ab428e0f6467ad7c9c1',
+  remoteDbApiKey: '',
 };

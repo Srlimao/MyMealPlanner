@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import { Calendar, BookOpen, BarChart3, ShieldCheck } from 'lucide-react';
 import { DailyLog, NutritionPlan, MealEntry, MealType } from './shared/types/nutrition';
 import { UserSettings } from './shared/types/settings';
@@ -12,10 +12,15 @@ import { DayView } from './features/dashboard/DayView';
 import { PlanViewer } from './features/plan/PlanViewer';
 import { WeeklyOverview } from './features/metrics/WeeklyOverview';
 import { HistoryList } from './features/metrics/HistoryList';
-import { AdminDashboard } from './features/admin/AdminDashboard';
 import { adminService } from './features/admin/adminService';
 import { useAuth } from './features/auth/AuthContext';
 import { usePWAInstall } from './shared/hooks/usePWAInstall';
+import { getLocalDateString } from './shared/utils/dateUtils';
+import { parseMealSuggestion } from './features/advisor/advisorPrompt';
+
+const AdminDashboard = lazy(() =>
+  import('./features/admin/AdminDashboard').then((m) => ({ default: m.AdminDashboard }))
+);
 
 type Tab = 'dashboard' | 'plan' | 'metrics' | 'admin';
 
@@ -32,10 +37,10 @@ export function AuthenticatedApp() {
   const isAdmin = adminService.isAdmin(user?.email);
 
   const [activeTab, setActiveTab] = useState<Tab>('dashboard');
-  const [currentDate, setCurrentDate] = useState<string>(() => new Date().toISOString().split('T')[0]);
+  const [currentDate, setCurrentDate] = useState<string>(() => getLocalDateString());
   const [settings, setSettings] = useState<UserSettings>(() => jsonDbService.getUserSettings());
   const [nutritionPlan, setNutritionPlan] = useState<NutritionPlan>(DEFAULT_NUTRITION_PLAN);
-  const [dailyLog, setDailyLog] = useState<DailyLog>(() => emptyLog(new Date().toISOString().split('T')[0]));
+  const [dailyLog, setDailyLog] = useState<DailyLog>(() => emptyLog(getLocalDateString()));
   const [recentLogs, setRecentLogs] = useState<DailyLog[]>([]);
   const [isOnline, setIsOnline] = useState<boolean>(navigator.onLine);
 
@@ -97,7 +102,11 @@ export function AuthenticatedApp() {
   };
 
   const handleConfirmMeal = async (newMeal: MealEntry) => {
-    const meals = [...dailyLog.meals, newMeal];
+    const existingIndex = dailyLog.meals.findIndex((m) => m.id === newMeal.id);
+    const meals = existingIndex >= 0
+      ? dailyLog.meals.map((m, i) => (i === existingIndex ? newMeal : m))
+      : [...dailyLog.meals, newMeal];
+
     const dayTotals = meals.reduce(
       (acc, m) => ({
         calories: acc.calories + m.totals.calories,
@@ -113,12 +122,11 @@ export function AuthenticatedApp() {
 
   const handleQuickLogSuggestion = (suggestionText: string, mealType: MealType) => {
     const mealLabel = t.meals[mealType] || mealType;
+    const parsed = parseMealSuggestion(suggestionText);
     setReviewMealData({
-      name: `${t.advisor.suggestedOptionPrefix} ${mealLabel}`,
+      name: parsed.optionTitle || `${t.advisor.suggestedOptionPrefix} ${mealLabel}`,
       mealType,
-      items: [
-        { id: `item_${Date.now()}`, name: t.advisor.recommendedPlanOption, portion: '1 porção', calories: 350, protein: 25, carbs: 35, fat: 8 },
-      ],
+      items: parsed.items,
       notes: suggestionText.slice(0, 150),
       adheresToPlateRule: true,
     });
@@ -204,6 +212,7 @@ export function AuthenticatedApp() {
             settings={settings}
             onOpenQuickLog={() => setIsQuickLogOpen(true)}
             onQuickLogSuggestion={handleQuickLogSuggestion}
+            onEditMeal={(meal) => setReviewMealData(meal)}
           />
         )}
 
@@ -225,7 +234,11 @@ export function AuthenticatedApp() {
           </div>
         )}
 
-        {activeTab === 'admin' && <AdminDashboard />}
+        {activeTab === 'admin' && (
+          <Suspense fallback={<div className="p-8 text-center text-neutral-500 text-xs font-mono">A carregar painel de administração...</div>}>
+            <AdminDashboard />
+          </Suspense>
+        )}
       </main>
 
       {/* Mobile Bottom Navigation Bar */}

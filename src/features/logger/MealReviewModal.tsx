@@ -160,14 +160,46 @@ export const MealReviewModal: React.FC<MealReviewModalProps> = ({
                     className="w-16 bg-neutral-900 border border-neutral-800 rounded px-1.5 py-1 text-[11px] text-neutral-300 text-center"
                     placeholder={t.logger.portionPlaceholder}
                   />
-                  <div className="flex items-center gap-1">
-                    <span className="text-[10px] text-neutral-500">kcal:</span>
-                    <input
-                      type="number"
-                      value={item.calories}
-                      onChange={(e) => handleUpdateItem(idx, 'calories', Number(e.target.value))}
-                      className="w-14 bg-neutral-900 border border-neutral-800 rounded px-1.5 py-1 text-[11px] text-emerald-400 font-mono text-center"
-                    />
+                  <div className="flex items-center gap-1.5 flex-wrap sm:flex-nowrap">
+                    <div className="flex items-center gap-0.5">
+                      <span className="text-[10px] text-neutral-500 font-mono">kcal</span>
+                      <input
+                        type="number"
+                        value={item.calories}
+                        onChange={(e) => handleUpdateItem(idx, 'calories', Number(e.target.value))}
+                        className="w-12 bg-neutral-900 border border-neutral-800 rounded px-1 py-1 text-[11px] text-emerald-400 font-mono text-center"
+                      />
+                    </div>
+                    <div className="flex items-center gap-0.5">
+                      <span className="text-[10px] text-blue-400 font-mono">P</span>
+                      <input
+                        type="number"
+                        value={item.protein}
+                        onChange={(e) => handleUpdateItem(idx, 'protein', Number(e.target.value))}
+                        className="w-10 bg-neutral-900 border border-neutral-800 rounded px-1 py-1 text-[11px] text-blue-300 font-mono text-center"
+                        title={t.macros.protein}
+                      />
+                    </div>
+                    <div className="flex items-center gap-0.5">
+                      <span className="text-[10px] text-amber-400 font-mono">C</span>
+                      <input
+                        type="number"
+                        value={item.carbs}
+                        onChange={(e) => handleUpdateItem(idx, 'carbs', Number(e.target.value))}
+                        className="w-10 bg-neutral-900 border border-neutral-800 rounded px-1 py-1 text-[11px] text-amber-300 font-mono text-center"
+                        title={t.macros.carbs}
+                      />
+                    </div>
+                    <div className="flex items-center gap-0.5">
+                      <span className="text-[10px] text-rose-400 font-mono">G</span>
+                      <input
+                        type="number"
+                        value={item.fat}
+                        onChange={(e) => handleUpdateItem(idx, 'fat', Number(e.target.value))}
+                        className="w-10 bg-neutral-900 border border-neutral-800 rounded px-1 py-1 text-[11px] text-rose-300 font-mono text-center"
+                        title={t.macros.fat}
+                      />
+                    </div>
                   </div>
                   <button
                     type="button"

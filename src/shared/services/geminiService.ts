@@ -1,4 +1,4 @@
-import { GeminiModelId, AVAILABLE_MODELS } from '../types/settings';
+import { GeminiModelId } from '../types/settings';
 import { jsonDbService } from './jsonDbService';
 
 const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models';
@@ -17,16 +17,42 @@ export interface ImagePart {
   };
 }
 
+export interface ChatHistoryItem {
+  role: 'user' | 'model';
+  text: string;
+}
+
+export interface GenerateContentOptions {
+  prompt: string;
+  image?: { base64: string; mimeType: string };
+  history?: ChatHistoryItem[];
+  preferredModel?: GeminiModelId;
+  systemInstruction?: string;
+  responseMimeType?: 'application/json' | 'text/plain';
+}
+
 class GeminiService {
   /**
-   * Generates content from Gemini with automatic fallback on HTTP 429 (Quota/Rate Limit)
+   * Generates content from Gemini with automatic fallback on HTTP 429 (Quota), 503 (Overloaded) or 404
    */
   async generateContent(
-    prompt: string,
+    promptOrOptions: string | GenerateContentOptions,
     image?: { base64: string; mimeType: string },
     preferredModel?: GeminiModelId,
-    systemInstruction?: string
+    systemInstruction?: string,
+    responseMimeType?: 'application/json' | 'text/plain'
   ): Promise<GeminiResponse<string>> {
+    const opts: GenerateContentOptions =
+      typeof promptOrOptions === 'string'
+        ? {
+            prompt: promptOrOptions,
+            image,
+            preferredModel,
+            systemInstruction,
+            responseMimeType,
+          }
+        : promptOrOptions;
+
     const settings = jsonDbService.getUserSettings();
     const apiKey = settings.geminiApiKey;
 
@@ -36,7 +62,7 @@ class GeminiService {
       );
     }
 
-    const startModel = preferredModel || settings.activeModel || 'gemini-2.5-flash';
+    const startModel = opts.preferredModel || settings.activeModel || 'gemini-3.5-flash-lite';
     const fallbackList = this.getFallbackChain(startModel);
 
     let lastError: Error | null = null;
@@ -47,13 +73,7 @@ class GeminiService {
       if (i > 0) fallbackTriggered = true;
 
       try {
-        const result = await this.callModel(
-          currentModel,
-          apiKey,
-          prompt,
-          image,
-          systemInstruction
-        );
+        const result = await this.callModel(currentModel, apiKey, opts);
         return {
           data: result,
           modelUsed: currentModel,
@@ -62,19 +82,23 @@ class GeminiService {
       } catch (err: unknown) {
         lastError = err as Error;
         const errMsg = lastError.message || '';
-        const isQuotaOrRateLimit =
+        const shouldFallback =
           errMsg.includes('429') ||
           errMsg.includes('RESOURCE_EXHAUSTED') ||
           errMsg.includes('quota') ||
-          errMsg.includes('rate limit');
+          errMsg.includes('rate limit') ||
+          errMsg.includes('503') ||
+          errMsg.includes('UNAVAILABLE') ||
+          errMsg.includes('overloaded') ||
+          errMsg.includes('404') ||
+          errMsg.includes('NOT_FOUND');
 
-        // Only fallback if quota/rate limit is hit and user enabled auto-fallback
-        if (isQuotaOrRateLimit && settings.autoFallbackOnRateLimit && i < fallbackList.length - 1) {
-          console.warn(`[Gemini] Model ${currentModel} exhausted, failing over to ${fallbackList[i + 1]}`);
+        // Only fallback if quota/error is hit and user enabled auto-fallback (or model was 404/503)
+        if (shouldFallback && settings.autoFallbackOnRateLimit && i < fallbackList.length - 1) {
+          console.warn(`[Gemini] Model ${currentModel} failed (${errMsg.substring(0, 80)}), failing over to ${fallbackList[i + 1]}`);
           continue;
         }
 
-        // If not a quota issue or no further fallback, throw
         throw lastError;
       }
     }
@@ -85,30 +109,25 @@ class GeminiService {
   private async callModel(
     model: GeminiModelId,
     apiKey: string,
-    prompt: string,
-    image?: { base64: string; mimeType: string },
-    systemInstruction?: string
+    opts: GenerateContentOptions
   ): Promise<string> {
     const endpoint = `${GEMINI_API_URL}/${model}:generateContent?key=${apiKey}`;
 
-    const parts: unknown[] = [];
-    if (image) {
-      parts.push({
-        inlineData: {
-          mimeType: image.mimeType,
-          data: image.base64,
-        },
-      });
-    }
-    parts.push({ text: prompt });
+    const contents = this.buildContents(opts.prompt, opts.image, opts.history);
 
     const requestBody: Record<string, unknown> = {
-      contents: [{ role: 'user', parts }],
+      contents,
     };
 
-    if (systemInstruction) {
+    if (opts.systemInstruction) {
       requestBody.systemInstruction = {
-        parts: [{ text: systemInstruction }],
+        parts: [{ text: opts.systemInstruction }],
+      };
+    }
+
+    if (opts.responseMimeType) {
+      requestBody.generationConfig = {
+        responseMimeType: opts.responseMimeType,
       };
     }
 
@@ -131,17 +150,75 @@ class GeminiService {
     }
 
     const data = await response.json();
-    const candidateText =
-      data?.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
+    const candidateText = data?.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
     return candidateText;
   }
 
+  private buildContents(
+    prompt: string,
+    image?: { base64: string; mimeType: string },
+    history?: ChatHistoryItem[]
+  ): unknown[] {
+    const contents: Array<{ role: 'user' | 'model'; parts: unknown[] }> = [];
+
+    if (history && history.length > 0) {
+      for (const h of history) {
+        if (!h.text?.trim()) continue;
+        const last = contents[contents.length - 1];
+        if (last && last.role === h.role) {
+          last.parts.push({ text: h.text });
+        } else {
+          contents.push({
+            role: h.role,
+            parts: [{ text: h.text }],
+          });
+        }
+      }
+    }
+
+    if (contents.length > 0 && contents[0].role !== 'user') {
+      contents.shift();
+    }
+
+    const finalParts: unknown[] = [];
+    if (image) {
+      finalParts.push({
+        inlineData: {
+          mimeType: image.mimeType,
+          data: image.base64,
+        },
+      });
+    }
+    if (prompt) {
+      finalParts.push({ text: prompt });
+    }
+
+    const lastMsg = contents[contents.length - 1];
+    if (lastMsg && lastMsg.role === 'user') {
+      lastMsg.parts.push(...finalParts);
+    } else {
+      contents.push({ role: 'user', parts: finalParts });
+    }
+
+    return contents;
+  }
+
   private getFallbackChain(startModel: GeminiModelId): GeminiModelId[] {
-    const allModelIds: GeminiModelId[] = AVAILABLE_MODELS.map((m) => m.id);
-    const startIdx = allModelIds.indexOf(startModel);
-    if (startIdx === -1) return allModelIds;
-    // Return startModel first, followed by others in hierarchy
-    return [startModel, ...allModelIds.filter((m) => m !== startModel)];
+    // Prioritized high-budget fallback chain:
+    // 500 RPD -> 500 RPD -> 14,400 RPD
+    const priorityFallbacks: GeminiModelId[] = [
+      'gemini-3.5-flash-lite',
+      'gemini-3.1-flash-lite',
+      'gemma-4-26b-a4b-it',
+    ];
+
+    const chain: GeminiModelId[] = [startModel];
+    for (const fb of priorityFallbacks) {
+      if (!chain.includes(fb)) {
+        chain.push(fb);
+      }
+    }
+    return chain;
   }
 }
 

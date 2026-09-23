@@ -3,11 +3,12 @@ import { X, Send, Bot, User, Loader2, Sparkles } from 'lucide-react';
 import { DailyLog, NutritionPlan } from '../../shared/types/nutrition';
 import { UserSettings } from '../../shared/types/settings';
 import { buildAdvisorSystemPrompt, formatDailyConsumptionContext } from './advisorPrompt';
-import { geminiService } from '../../shared/services/geminiService';
+import { geminiService, ChatHistoryItem } from '../../shared/services/geminiService';
 import { MarkdownViewer } from '../../shared/components/MarkdownViewer';
 import { getTranslation } from '../../shared/i18n';
 import { useSubscription } from '../subscription/SubscriptionContext';
 import { TIER_CONFIGS } from '../subscription/types';
+import { useAuth } from '../auth/AuthContext';
 
 interface Message {
   id: string;
@@ -32,6 +33,8 @@ export const AdvisorChatDrawer: React.FC<AdvisorChatDrawerProps> = ({
   settings,
 }) => {
   const t = getTranslation(settings.language);
+  const { user } = useAuth();
+  const userName = user?.displayName || user?.email?.split('@')[0] || 'Willian';
   const { tier, canPerformAction, recordAction, getModelForAction, openTierModal } = useSubscription();
 
   const [messages, setMessages] = useState<Message[]>([
@@ -86,18 +89,25 @@ export const AdvisorChatDrawer: React.FC<AdvisorChatDrawerProps> = ({
     setLoading(true);
 
     try {
-      const systemPrompt = buildAdvisorSystemPrompt(nutritionPlan, settings.language);
-      const dailyContext = formatDailyConsumptionContext(todayLog, settings.targets);
-      const contextualPrompt = `${dailyContext}\n\nPergunta do Willian:\n${userText}`;
+      const history: ChatHistoryItem[] = messages
+        .filter((m) => m.id !== 'welcome' && !m.id.startsWith('err_'))
+        .map((m) => ({
+          role: (m.sender === 'assistant' ? 'model' : 'user') as 'model' | 'user',
+          text: m.text,
+        }));
+
+      const systemPrompt = buildAdvisorSystemPrompt(nutritionPlan, settings.language, userName);
+      const dailyContext = formatDailyConsumptionContext(todayLog, settings.targets, userName);
+      const contextualPrompt = `${dailyContext}\n\nPergunta de ${userName}:\n${userText}`;
 
       const modelToUse = getModelForAction('chat', settings.activeModel);
 
-      const response = await geminiService.generateContent(
-        contextualPrompt,
-        undefined,
-        modelToUse,
-        systemPrompt
-      );
+      const response = await geminiService.generateContent({
+        prompt: contextualPrompt,
+        history,
+        preferredModel: modelToUse,
+        systemInstruction: systemPrompt,
+      });
 
       recordAction('chat');
 
@@ -146,9 +156,9 @@ export const AdvisorChatDrawer: React.FC<AdvisorChatDrawerProps> = ({
                 </span>
               </div>
               <p className="text-[10px] text-emerald-400">
-                {chatCheck.limit === Infinity
-                  ? 'Conversas ilimitadas'
-                  : `${chatCheck.remaining} de ${chatCheck.limit} restantes hoje`}
+                {chatCheck.limit === Infinity || tier === 'pro'
+                  ? `Highest (${chatCheck.remaining} ${t.subscription.quotaRemaining})`
+                  : `${chatCheck.remaining} de ${chatCheck.limit} ${t.subscription.quotaRemaining}`}
               </p>
             </div>
           </div>
@@ -226,7 +236,7 @@ export const AdvisorChatDrawer: React.FC<AdvisorChatDrawerProps> = ({
           <div className="p-3 border-t border-neutral-800 bg-neutral-950 flex flex-col gap-2">
             <div className="flex items-center justify-between text-xs">
               <span className="text-rose-400 font-semibold flex items-center gap-1.5">
-                ⚠️ Limite diário de conversas atingido ({chatCheck.limit}/{chatCheck.limit})
+                ⚠️ {t.advisor.dailyLimitReached} ({chatCheck.limit}/{chatCheck.limit})
               </span>
               <button
                 type="button"

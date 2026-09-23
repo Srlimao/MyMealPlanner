@@ -1,9 +1,9 @@
 import { DailyLog, NutritionPlan } from '../types/nutrition';
 import { UserSettings, DEFAULT_USER_SETTINGS } from '../types/settings';
 import { DEFAULT_NUTRITION_PLAN } from '../data/defaultPlan';
+import { runLegacyDataMigration } from './legacyMigration';
 
 const DB_BASE_URL = 'https://db.dunhas.com/api';
-const DB_API_KEY = import.meta.env.VITE_DB_API_KEY || '1b4a19fdc1eda3f481543b0f25b01ab428e0f6467ad7c9c1';
 
 interface SyncItem {
   collection: string;
@@ -40,8 +40,22 @@ class JsonDbService {
     return this.userId ? `user_${this.userId}_${name}` : name;
   }
 
-  private getCacheKey(key: string): string {
+  getCacheKey(key: string): string {
     return this.userId ? `eh_${this.userId}_${key}` : `eh_${key}`;
+  }
+
+  private getDbApiKey(): string {
+    const key = this.getCacheKey('settings');
+    const cached = typeof window !== 'undefined' ? localStorage.getItem(key) : null;
+    if (cached) {
+      try {
+        const parsed = JSON.parse(cached);
+        if (parsed.remoteDbApiKey) return parsed.remoteDbApiKey;
+      } catch {
+        // ignore
+      }
+    }
+    return import.meta.env.VITE_DB_API_KEY || '';
   }
 
   getOnlineStatus(): boolean {
@@ -51,10 +65,9 @@ class JsonDbService {
   // --- SETTINGS ---
   getUserSettings(): UserSettings {
     const key = this.getCacheKey('settings');
-    const cached = localStorage.getItem(key);
+    const cached = typeof window !== 'undefined' ? localStorage.getItem(key) : null;
     const settings: UserSettings = cached ? JSON.parse(cached) : { ...DEFAULT_USER_SETTINGS };
 
-    // Inject Vite environment variable if user hasn't set one manually
     const envKey = import.meta.env.VITE_GEMINI_API_KEY;
     if (!settings.geminiApiKey && envKey) {
       settings.geminiApiKey = envKey;
@@ -75,8 +88,8 @@ class JsonDbService {
     if (cached) {
       try {
         return JSON.parse(cached);
-      } catch (e) {
-        console.error('Error parsing cached nutrition plan', e);
+      } catch {
+        // ignore corrupt
       }
     }
 
@@ -87,7 +100,7 @@ class JsonDbService {
         return remote;
       }
     } catch {
-      // Offline or remote not seeded yet
+      // offline fallback
     }
 
     localStorage.setItem(key, JSON.stringify(DEFAULT_NUTRITION_PLAN));
@@ -108,14 +121,12 @@ class JsonDbService {
 
     try {
       const remote = await this.getDocument<DailyLog>(this.getCollection('eating_logs'), date);
-      if (remote) {
-        if (!localLog || new Date(remote.updatedAt) > new Date(localLog.updatedAt)) {
-          localStorage.setItem(key, JSON.stringify(remote));
-          return remote;
-        }
+      if (remote && (!localLog || new Date(remote.updatedAt) > new Date(localLog.updatedAt))) {
+        localStorage.setItem(key, JSON.stringify(remote));
+        return remote;
       }
     } catch {
-      // Offline fallback
+      // offline fallback
     }
 
     return localLog;
@@ -138,32 +149,35 @@ class JsonDbService {
           const item = JSON.parse(localStorage.getItem(key) || '');
           if (item?.date) logsMap.set(item.date, item);
         } catch {
-          // Ignore corrupt entries
+          // ignore corrupt
         }
       }
     }
 
-    try {
-      const collection = this.getCollection('eating_logs');
-      const response = await fetch(`${DB_BASE_URL}/${collection}?limit=${limit}&offset=0`, {
-        headers: { 'x-api-key': DB_API_KEY },
-      });
-      if (response.ok) {
-        const json = await response.json();
-        if (Array.isArray(json?.results)) {
-          for (const item of json.results) {
-            if (item.data?.date) {
-              const existing = logsMap.get(item.data.date);
-              if (!existing || new Date(item.data.updatedAt) > new Date(existing.updatedAt)) {
-                logsMap.set(item.data.date, item.data);
-                localStorage.setItem(this.getCacheKey(`log_${item.data.date}`), JSON.stringify(item.data));
+    const apiKey = this.getDbApiKey();
+    if (apiKey) {
+      try {
+        const collection = this.getCollection('eating_logs');
+        const res = await fetch(`${DB_BASE_URL}/${collection}?limit=${limit}&offset=0`, {
+          headers: { 'x-api-key': apiKey },
+        });
+        if (res.ok) {
+          const json = await res.json();
+          if (Array.isArray(json?.results)) {
+            for (const item of json.results) {
+              if (item.data?.date) {
+                const existing = logsMap.get(item.data.date);
+                if (!existing || new Date(item.data.updatedAt) > new Date(existing.updatedAt)) {
+                  logsMap.set(item.data.date, item.data);
+                  localStorage.setItem(this.getCacheKey(`log_${item.data.date}`), JSON.stringify(item.data));
+                }
               }
             }
           }
         }
+      } catch {
+        // offline fallback
       }
-    } catch {
-      // Offline, use local data
     }
 
     return Array.from(logsMap.values()).sort(
@@ -173,66 +187,35 @@ class JsonDbService {
 
   // --- AUTO MIGRATION OF LEGACY UNAUTHENTICATED DATA ---
   async autoMigrateLegacyData(uid: string): Promise<void> {
-    const migrationFlag = `eh_${uid}_legacy_migrated`;
-    if (localStorage.getItem(migrationFlag)) return;
-
-    const legacyPlan = localStorage.getItem('eh_active_plan');
-    const legacySettings = localStorage.getItem('eh_settings');
-
-    if (legacyPlan && !localStorage.getItem(this.getCacheKey('active_plan'))) {
-      try {
-        const plan = JSON.parse(legacyPlan);
-        await this.saveNutritionPlan(plan);
-      } catch (e) {
-        console.warn('Failed to migrate legacy plan', e);
-      }
-    }
-
-    if (legacySettings && !localStorage.getItem(this.getCacheKey('settings'))) {
-      try {
-        const settings = JSON.parse(legacySettings);
-        await this.saveUserSettings(settings);
-      } catch (e) {
-        console.warn('Failed to migrate legacy settings', e);
-      }
-    }
-
-    // Migrate legacy daily logs
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      if (key?.startsWith('eh_log_')) {
-        try {
-          const logData = JSON.parse(localStorage.getItem(key) || '');
-          if (logData?.date) {
-            await this.saveDailyLog(logData);
-          }
-        } catch {
-          // ignore corrupted
-        }
-      }
-    }
-
-    localStorage.setItem(migrationFlag, 'true');
+    await runLegacyDataMigration(this, uid);
   }
 
   // --- LOW LEVEL HTTP + QUEUE ---
   async getDocument<T>(collection: string, id: string): Promise<T | null> {
-    const response = await fetch(`${DB_BASE_URL}/${collection}/${id}`, {
-      headers: { 'x-api-key': DB_API_KEY },
-    });
-    if (!response.ok) return null;
-    const json = await response.json();
-    return json?.data ?? null;
+    const apiKey = this.getDbApiKey();
+    if (!apiKey) return null;
+    try {
+      const response = await fetch(`${DB_BASE_URL}/${collection}/${id}`, {
+        headers: { 'x-api-key': apiKey },
+      });
+      if (!response.ok) return null;
+      const json = await response.json();
+      return json?.data ?? null;
+    } catch {
+      return null;
+    }
   }
 
   async upsertDocument(collection: string, id: string, data: unknown): Promise<void> {
+    const apiKey = this.getDbApiKey();
+    if (!apiKey) {
+      // Local-only mode, no remote configured
+      return;
+    }
     try {
       const response = await fetch(`${DB_BASE_URL}/${collection}/${id}`, {
         method: 'POST',
-        headers: {
-          'x-api-key': DB_API_KEY,
-          'Content-Type': 'application/json',
-        },
+        headers: { 'x-api-key': apiKey, 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       });
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
@@ -242,9 +225,11 @@ class JsonDbService {
   }
 
   async listDocuments<T>(collection: string, limit = 50): Promise<T[]> {
+    const apiKey = this.getDbApiKey();
+    if (!apiKey) return [];
     try {
       const res = await fetch(`${DB_BASE_URL}/${collection}?limit=${limit}`, {
-        headers: { 'x-api-key': DB_API_KEY },
+        headers: { 'x-api-key': apiKey },
       });
       if (!res.ok) return [];
       const json = await res.json();
@@ -257,7 +242,12 @@ class JsonDbService {
   private enqueueSync(item: SyncItem) {
     const syncKey = this.getCacheKey('pending_syncs');
     const queue: SyncItem[] = JSON.parse(localStorage.getItem(syncKey) || '[]');
-    queue.push(item);
+    const existingIdx = queue.findIndex(q => q.collection === item.collection && q.id === item.id);
+    if (existingIdx >= 0) {
+      queue[existingIdx] = item;
+    } else {
+      queue.push(item);
+    }
     localStorage.setItem(syncKey, JSON.stringify(queue));
   }
 
@@ -268,22 +258,27 @@ class JsonDbService {
     const queue: SyncItem[] = JSON.parse(queueStr);
     if (queue.length === 0) return;
 
-    const remaining: SyncItem[] = [];
+    const apiKey = this.getDbApiKey();
+    if (!apiKey) return;
+
+    const failedTimestamps = new Set<number>();
     for (const item of queue) {
       try {
         const response = await fetch(`${DB_BASE_URL}/${item.collection}/${item.id}`, {
           method: 'POST',
-          headers: {
-            'x-api-key': DB_API_KEY,
-            'Content-Type': 'application/json',
-          },
+          headers: { 'x-api-key': apiKey, 'Content-Type': 'application/json' },
           body: JSON.stringify(item.data),
         });
-        if (!response.ok) remaining.push(item);
+        if (!response.ok) failedTimestamps.add(item.timestamp);
       } catch {
-        remaining.push(item);
+        failedTimestamps.add(item.timestamp);
       }
     }
+
+    const currentQueue: SyncItem[] = JSON.parse(localStorage.getItem(syncKey) || '[]');
+    const remaining = currentQueue.filter(
+      item => failedTimestamps.has(item.timestamp) || !queue.some(q => q.timestamp === item.timestamp)
+    );
     localStorage.setItem(syncKey, JSON.stringify(remaining));
   }
 }

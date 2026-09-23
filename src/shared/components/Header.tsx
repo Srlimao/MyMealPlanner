@@ -1,6 +1,6 @@
 import React from 'react';
 import { Sparkles, Settings, Globe, Bot, Download } from 'lucide-react';
-import { UserSettings, AVAILABLE_MODELS, GeminiModelId } from '../types/settings';
+import { UserSettings } from '../types/settings';
 import { TRANSLATIONS } from '../i18n/translations';
 import { SUPPORTED_LANGUAGES, getLanguageInfo } from '../i18n';
 import { UserProfileDropdown } from '../../features/auth/UserProfileDropdown';
@@ -27,9 +27,6 @@ export const Header: React.FC<HeaderProps> = ({
   const t = TRANSLATIONS[settings.language];
   const currentLang = getLanguageInfo(settings.language);
 
-  const handleModelChange = (modelId: GeminiModelId) => {
-    onUpdateSettings({ ...settings, activeModel: modelId });
-  };
 
   const handleCycleLang = () => {
     const currentIndex = SUPPORTED_LANGUAGES.findIndex((l) => l.code === settings.language);
@@ -72,20 +69,6 @@ export const Header: React.FC<HeaderProps> = ({
 
         {/* Right Controls: Model Selector, Ask AI, Language & Settings */}
         <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-          {/* Quick Model Selector (Desktop & Tablet) */}
-          <div className="relative hidden md:block">
-            <select
-              value={settings.activeModel}
-              onChange={(e) => handleModelChange(e.target.value as GeminiModelId)}
-              className="appearance-none bg-neutral-900 border border-neutral-800 hover:border-neutral-700 text-neutral-200 text-xs rounded-lg px-2.5 py-1.5 pr-7 focus:outline-none focus:ring-1 focus:ring-emerald-500 cursor-pointer"
-            >
-              {AVAILABLE_MODELS.map((model) => (
-                <option key={model.id} value={model.id}>
-                  {model.name}
-                </option>
-              ))}
-            </select>
-          </div>
 
           {/* PWA Install Button */}
           {canInstall && (

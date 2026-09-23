@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { X, Camera, Type, Loader2, Sparkles, AlertCircle } from 'lucide-react';
 import { MealEntry, MealType } from '../../shared/types/nutrition';
 import { UserSettings } from '../../shared/types/settings';
@@ -38,13 +38,28 @@ export const QuickLogModal: React.FC<QuickLogModalProps> = ({
 
   const photoCheck = canPerformAction('photo');
 
+  useEffect(() => {
+    return () => {
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+    };
+  }, [previewUrl]);
+
   if (!isOpen) return null;
   const t = getTranslation(settings.language);
   const mealNames = getMealNames(settings.language);
 
+  const handleClose = () => {
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
+      setPreviewUrl(null);
+    }
+    onClose();
+  };
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
       setSelectedFile(file);
       setPreviewUrl(URL.createObjectURL(file));
       setError(null);
@@ -82,15 +97,20 @@ export const QuickLogModal: React.FC<QuickLogModalProps> = ({
 
       const modelToUse = getModelForAction(tab === 'photo' ? 'photo' : 'chat', settings.activeModel);
 
-      const response = await geminiService.generateContent(
+      const response = await geminiService.generateContent({
         prompt,
-        imagePayload,
-        modelToUse
-      );
+        image: imagePayload,
+        preferredModel: modelToUse,
+        responseMimeType: 'application/json',
+      });
 
       let cleanedJson = response.data.trim();
       if (cleanedJson.startsWith('```')) {
         cleanedJson = cleanedJson.replace(/^```json\s*/, '').replace(/^```\s*/, '').replace(/```$/, '').trim();
+      }
+      const jsonMatch = cleanedJson.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        cleanedJson = jsonMatch[0];
       }
 
       const parsedData = JSON.parse(cleanedJson);
@@ -98,7 +118,7 @@ export const QuickLogModal: React.FC<QuickLogModalProps> = ({
         recordAction('photo');
       }
       onParsedSuccess(parsedData);
-      onClose();
+      handleClose();
     } catch (err: unknown) {
       console.error('Gemini extraction error', err);
       setError(
@@ -118,7 +138,7 @@ export const QuickLogModal: React.FC<QuickLogModalProps> = ({
             <Sparkles className="w-4 h-4 text-emerald-400" />
             <h2 className="text-sm font-bold text-neutral-100">{t.logger.quickLogTitle}</h2>
           </div>
-          <button onClick={onClose} className="p-1.5 text-neutral-400 hover:text-neutral-100 rounded-lg">
+          <button onClick={handleClose} className="p-1.5 text-neutral-400 hover:text-neutral-100 rounded-lg cursor-pointer">
             <X className="w-4 h-4" />
           </button>
         </div>

@@ -1,6 +1,7 @@
 import { geminiService } from '../../shared/services/geminiService';
 import { NutritionPlan, MealType } from '../../shared/types/nutrition';
 import { generatePlanMarkdown } from './planParser';
+import { getLocalDateString } from '../../shared/utils/dateUtils';
 
 export async function parsePlanWithAI(
   rawText: string,
@@ -41,12 +42,20 @@ TEXTO NUTRICIONAL:
 ${rawText}
 """`;
 
-  const response = await geminiService.generateContent(prompt, undefined, undefined, systemInstruction);
+  const response = await geminiService.generateContent({
+    prompt,
+    systemInstruction,
+    responseMimeType: 'application/json',
+  });
   let cleaned = response.data.trim();
   if (cleaned.startsWith('```json')) {
     cleaned = cleaned.replace(/^```json\s*/, '').replace(/```$/, '').trim();
   } else if (cleaned.startsWith('```')) {
     cleaned = cleaned.replace(/^```\s*/, '').replace(/```$/, '').trim();
+  }
+  const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
+  if (jsonMatch) {
+    cleaned = jsonMatch[0];
   }
 
   const parsed = JSON.parse(cleaned);
@@ -72,7 +81,7 @@ ${rawText}
   const newPlan: NutritionPlan = {
     id: basePlan?.id || 'current_plan',
     title: parsed.title || basePlan?.title || 'Plano Alimentar Willian Backhaus',
-    date: parsed.date || basePlan?.date || new Date().toISOString().split('T')[0],
+    date: parsed.date || basePlan?.date || getLocalDateString(),
     markdownContent: '',
     meals: normalizedMeals,
     commitments: Array.isArray(parsed.commitments) ? parsed.commitments : basePlan?.commitments || [],

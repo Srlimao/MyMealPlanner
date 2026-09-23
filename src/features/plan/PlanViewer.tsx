@@ -3,8 +3,11 @@ import { BookOpen, Edit3, Apple, CheckCircle2, Clock, ShieldCheck } from 'lucide
 import { NutritionPlan } from '../../shared/types/nutrition';
 import { Card } from '../../shared/components/Card';
 import { EquivalenciesTable } from './EquivalenciesTable';
-import { PlanEditor } from './PlanEditor';
 import { getTranslation } from '../../shared/i18n';
+
+const PlanEditor = React.lazy(() =>
+  import('./PlanEditor').then((m) => ({ default: m.PlanEditor }))
+);
 
 interface PlanViewerProps {
   plan: NutritionPlan;
@@ -23,12 +26,14 @@ export const PlanViewer: React.FC<PlanViewerProps> = ({ plan, onUpdatePlan, lang
 
   if (mode === 'edit') {
     return (
-      <PlanEditor
-        plan={plan}
-        onSave={handleSavePlan}
-        onCancel={() => setMode('view')}
-        lang={lang}
-      />
+      <React.Suspense fallback={<div className="p-8 text-center text-neutral-500 text-xs">A carregar editor...</div>}>
+        <PlanEditor
+          plan={plan}
+          onSave={handleSavePlan}
+          onCancel={() => setMode('view')}
+          lang={lang}
+        />
+      </React.Suspense>
     );
   }
 

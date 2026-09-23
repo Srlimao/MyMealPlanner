@@ -2,6 +2,7 @@ import { AdminUserSummary, FinancialSummary } from './types';
 import { UserTier, TIER_CONFIGS, UserUsageRecord } from '../subscription/types';
 import { User } from '../auth/authService';
 import { jsonDbService } from '../../shared/services/jsonDbService';
+import { getLocalDateString } from '../../shared/utils/dateUtils';
 
 const DEFAULT_ADMIN_EMAILS = [
   'admin@dunhas.com',
@@ -13,8 +14,8 @@ class AdminService {
     if (!email) return false;
     const lower = email.toLowerCase().trim();
 
-    // Check dev override
-    if (typeof window !== 'undefined' && localStorage.getItem('eh_admin_mode') === 'true') {
+    // Check dev override (development/testing only)
+    if (import.meta.env.DEV && typeof window !== 'undefined' && localStorage.getItem('eh_admin_mode') === 'true') {
       return true;
     }
 
@@ -161,7 +162,7 @@ class AdminService {
     }
 
     if (typeof window !== 'undefined') {
-      const todayStr = new Date().toISOString().split('T')[0];
+      const todayStr = getLocalDateString();
       const resetUsage: UserUsageRecord = {
         date: todayStr,
         month: todayStr.slice(0, 7),

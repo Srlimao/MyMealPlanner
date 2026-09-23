@@ -7,6 +7,7 @@ import {
   Code,
   SlidersHorizontal,
 } from 'lucide-react';
+import { getTranslation } from '../../shared/i18n';
 
 interface PlanEditorHeaderProps {
   mode: 'visual' | 'markdown';
@@ -37,6 +38,7 @@ export const PlanEditorHeader: React.FC<PlanEditorHeaderProps> = ({
   savedLabel,
   lang = 'pt',
 }) => {
+  const t = getTranslation(lang);
   return (
     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-neutral-800/80">
       <div className="flex items-center gap-2">
@@ -45,16 +47,10 @@ export const PlanEditorHeader: React.FC<PlanEditorHeaderProps> = ({
         </div>
         <div>
           <h3 className="text-sm font-bold text-neutral-100">
-            {lang === 'en' ? 'Plan Editor' : 'Editor do Plano Alimentar'}
+            {t.plan.planEditor}
           </h3>
           <p className="text-[11px] text-neutral-400">
-            {mode === 'visual'
-              ? lang === 'en'
-                ? 'Visual section-by-section customization'
-                : 'Edição visual organizada por secções'
-              : lang === 'en'
-              ? 'Direct Markdown source code'
-              : 'Código-fonte Markdown direto'}
+            {mode === 'visual' ? t.plan.visualModeSubtitle : t.plan.markdownModeSubtitle}
           </p>
         </div>
       </div>
@@ -71,7 +67,7 @@ export const PlanEditorHeader: React.FC<PlanEditorHeaderProps> = ({
                 : 'text-neutral-400 hover:text-neutral-200'
             }`}
           >
-            {lang === 'en' ? 'Visual' : 'Visual'}
+            {t.plan.visual}
           </button>
           <button
             type="button"
@@ -83,7 +79,7 @@ export const PlanEditorHeader: React.FC<PlanEditorHeaderProps> = ({
             }`}
           >
             <Code className="w-3 h-3" />
-            <span>Markdown</span>
+            <span>{t.plan.markdown}</span>
           </button>
         </div>
 
@@ -92,10 +88,10 @@ export const PlanEditorHeader: React.FC<PlanEditorHeaderProps> = ({
           type="button"
           onClick={onOpenAiModal}
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-purple-500/15 hover:bg-purple-500/25 text-purple-300 border border-purple-500/30 text-xs font-semibold transition-all cursor-pointer"
-          title={lang === 'en' ? 'Import from consultation notes with AI' : 'Importar notas de consulta com IA'}
+          title={t.plan.aiImportTitle}
         >
           <Sparkles className="w-3.5 h-3.5 text-purple-400" />
-          <span className="hidden xs:inline">{lang === 'en' ? 'AI Import' : 'Importar IA'}</span>
+          <span className="hidden xs:inline">{t.plan.aiImport}</span>
         </button>
 
         {/* Reset button */}

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Trash2, CheckCircle2, Clock } from 'lucide-react';
+import { Trash2, CheckCircle2, Clock, Pencil } from 'lucide-react';
 import { MealEntry } from '../../shared/types/nutrition';
 import { AppLanguage } from '../../shared/types/settings';
 import { Card } from '../../shared/components/Card';
@@ -8,10 +8,11 @@ import { getTranslation, getMealName } from '../../shared/i18n';
 interface MealCardProps {
   meal: MealEntry;
   onDelete: (id: string) => void;
+  onEdit?: (meal: MealEntry) => void;
   lang: AppLanguage;
 }
 
-export const MealCard: React.FC<MealCardProps> = ({ meal, onDelete, lang }) => {
+export const MealCard: React.FC<MealCardProps> = ({ meal, onDelete, onEdit, lang }) => {
   const t = getTranslation(lang);
   const timeFormatted = new Date(meal.loggedAt).toLocaleTimeString([], {
     hour: '2-digit',
@@ -39,13 +40,24 @@ export const MealCard: React.FC<MealCardProps> = ({ meal, onDelete, lang }) => {
           <h4 className="text-sm font-bold text-neutral-100 mt-1">{meal.name}</h4>
         </div>
 
-        <button
-          onClick={() => onDelete(meal.id)}
-          className="p-1.5 text-neutral-500 hover:text-rose-400 hover:bg-neutral-800/80 rounded-lg transition-colors"
-          title={t.dashboard.deleteMeal}
-        >
-          <Trash2 className="w-3.5 h-3.5" />
-        </button>
+        <div className="flex items-center gap-1">
+          {onEdit && (
+            <button
+              onClick={() => onEdit(meal)}
+              className="p-1.5 text-neutral-500 hover:text-emerald-400 hover:bg-neutral-800/80 rounded-lg transition-colors cursor-pointer"
+              title={t.common.edit}
+            >
+              <Pencil className="w-3.5 h-3.5" />
+            </button>
+          )}
+          <button
+            onClick={() => onDelete(meal.id)}
+            className="p-1.5 text-neutral-500 hover:text-rose-400 hover:bg-neutral-800/80 rounded-lg transition-colors cursor-pointer"
+            title={t.dashboard.deleteMeal}
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+          </button>
+        </div>
       </div>
 
       {/* Items list */}

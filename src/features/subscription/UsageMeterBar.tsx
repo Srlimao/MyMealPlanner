@@ -6,6 +6,7 @@ interface UsageMeterBarProps {
   limit: number;
   unit?: string;
   icon?: React.ReactNode;
+  isHighest?: boolean;
 }
 
 export const UsageMeterBar: React.FC<UsageMeterBarProps> = ({
@@ -14,8 +15,9 @@ export const UsageMeterBar: React.FC<UsageMeterBarProps> = ({
   limit,
   unit = '',
   icon,
+  isHighest = false,
 }) => {
-  const isUnlimited = limit === Infinity;
+  const isUnlimited = limit === Infinity || isHighest;
   const percentage = isUnlimited ? 0 : Math.min(100, Math.round((current / limit) * 100));
 
   let barColor = 'bg-emerald-500';
@@ -40,7 +42,7 @@ export const UsageMeterBar: React.FC<UsageMeterBarProps> = ({
         </div>
         <span className={`px-1.5 py-0.5 rounded font-mono font-semibold text-[11px] border ${badgeColor}`}>
           {isUnlimited ? (
-            'Ilimitado'
+            'Highest'
           ) : (
             `${current}/${limit}${unit ? ` ${unit}` : ''}`
           )}

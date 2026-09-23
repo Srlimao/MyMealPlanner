@@ -5,6 +5,7 @@ import {
   MealType,
 } from '../../shared/types/nutrition';
 import { generatePlanMarkdown } from './planGenerator';
+import { getLocalDateString } from '../../shared/utils/dateUtils';
 
 export { generatePlanMarkdown };
 
@@ -88,7 +89,7 @@ export function parsePlanMarkdown(
   const lines = markdown.split('\n');
 
   let title = basePlan?.title || 'Plano Alimentar Willian Backhaus';
-  let date = basePlan?.date || new Date().toISOString().split('T')[0];
+  let date = basePlan?.date || getLocalDateString();
   const meals: NutritionPlanMeal[] = [];
   const commitments: string[] = [];
   const rules: string[] = basePlan?.rules ? [...basePlan.rules] : [];

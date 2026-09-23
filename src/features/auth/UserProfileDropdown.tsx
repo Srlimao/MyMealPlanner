@@ -129,7 +129,7 @@ export const UserProfileDropdown: React.FC<UserProfileDropdownProps> = ({
                 ) : (
                   <Sparkles className="w-3.5 h-3.5 text-neutral-400" />
                 )}
-                <span>Plano {tierConfig.name}</span>
+                <span>{t.subscription.planLabel} {tier === 'free' ? t.subscription.freeName : tierConfig.name}</span>
               </div>
               <button
                 type="button"
@@ -139,21 +139,23 @@ export const UserProfileDropdown: React.FC<UserProfileDropdownProps> = ({
                 }}
                 className="text-[11px] font-semibold text-emerald-400 hover:text-emerald-300 cursor-pointer"
               >
-                Gerenciar
+                {t.subscription.manage}
               </button>
             </div>
 
             {/* Daily Usage Meters */}
             <div className="space-y-2 pt-1 border-t border-neutral-800/60">
               <UsageMeterBar
-                label="Conversas hoje"
+                label={t.subscription.chatsToday}
                 current={usage.chatCountToday}
                 limit={tierConfig.chatLimitDaily}
+                isHighest={tier === 'pro'}
               />
               <UsageMeterBar
-                label="Fotos hoje"
+                label={t.subscription.photosToday}
                 current={usage.photoCountToday}
                 limit={tierConfig.photoLimitDaily}
+                isHighest={tier === 'pro'}
               />
             </div>
           </div>

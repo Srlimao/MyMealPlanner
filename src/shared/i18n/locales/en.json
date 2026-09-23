@@ -38,7 +38,8 @@
     "target": "goal",
     "proteinShort": "Prot",
     "carbsShort": "Carb",
-    "fatShort": "Fat"
+    "fatShort": "Fat",
+    "overTarget": "over"
   },
   "habits": {
     "water": "Water (2L)",
@@ -54,7 +55,8 @@
     "plateRule": "Plate Rule",
     "plateAdherence": "Balanced Plate (1/2 veg, 1/4 carb, 1/4 protein)",
     "plateSubtitle": "1/2 veggies, 1/4 carbs, 1/4 protein in full meals.",
-    "mainMeals": "main meals"
+    "mainMeals": "main meals",
+    "max": "max"
   },
   "advisor": {
     "title": "Nutrition Assistant",
@@ -74,7 +76,8 @@
       "How should I divide my plate at lunch?"
     ],
     "suggestedOptionPrefix": "Suggested option for",
-    "recommendedPlanOption": "Recommended plan option"
+    "recommendedPlanOption": "Recommended plan option",
+    "dailyLimitReached": "Daily conversation limit reached"
   },
   "logger": {
     "quickLogTitle": "Log Meal",
@@ -122,7 +125,32 @@
     "commitments": "Nutritionist Commitments",
     "option": "Option",
     "fruitEquivalenciesSubtitle": "1 piece of fruit equals any of the portions below:",
-    "filterFruit": "Filter fruit..."
+    "filterFruit": "Filter fruit...",
+    "planEditor": "Plan Editor",
+    "visualModeSubtitle": "Visual section-by-section customization",
+    "markdownModeSubtitle": "Direct Markdown source code",
+    "visual": "Visual",
+    "markdown": "Markdown",
+    "aiImport": "AI Import",
+    "aiImportTitle": "Import from consultation notes with AI",
+    "aiImportModalTitle": "Import Plan with AI",
+    "aiImportModalSubtitle": "Paste raw consultation notes or PDF text to auto-populate sections",
+    "mealsAndOptions": "Meals & Options",
+    "commitmentsAndRules": "Commitments & Rules",
+    "general": "General",
+    "addFruit": "Add Fruit",
+    "noFruitConfigured": "No fruit equivalencies configured.",
+    "fruitPlaceholder": "Fruit name (e.g. Banana 80g)",
+    "portionPlaceholder": "Portion (e.g. 1 unit)",
+    "noCommitments": "No commitments recorded.",
+    "noRules": "No rules specified.",
+    "aiImportPasteNotes": "Please paste consultation notes or dietary text first.",
+    "aiImportPlaceholder": "Paste the nutritionist message, email, or prescription text here...",
+    "aiImportRequiresTier": "AI plan import requires Starter or Pro tier.",
+    "aiImportBtn": "Auto-populate Sections",
+    "aiImportAnalyzing": "Analyzing with Gemini...",
+    "consultationNotes": "Consultation Text / Notes",
+    "upgrade": "Upgrade"
   },
   "metrics": {
     "history": "History & Metrics",
@@ -213,6 +241,52 @@
     "personalApiKeyNotice": "Your Gemini API Key is stored privately and securely on this account.",
     "apiKeyConfigured": "Gemini Key configured",
     "apiKeyMissing": "Gemini Key missing",
-    "configureInSettings": "Configure in Settings"
+    "configureInSettings": "Configure in Settings",
+    "continueAsGuest": "Continue in Offline / Guest Mode"
+  },
+  "subscription": {
+    "title": "Plans and Usage Limits",
+    "subtitle": "Choose the plan that best suits your dietary routine.",
+    "recommended": "Recommended",
+    "popular": "Popular",
+    "free": "Free",
+    "perMonth": "/month",
+    "currentPlan": "Current Plan",
+    "changeTo": "Switch to",
+    "resetNotice": "Daily limits automatically reset at midnight (00:00).",
+    "manage": "Manage",
+    "changePlan": "Change Plan",
+    "planLabel": "Plan",
+    "chatsToday": "Chats today",
+    "photosToday": "Photos today",
+    "highest": "Highest",
+    "freeName": "Free",
+    "starterName": "Starter",
+    "proName": "Pro",
+    "freeHighlights": [
+      "10 AI conversations per day",
+      "3 meal photos per day",
+      "Up to 3 meal suggestions per day",
+      "Full text log",
+      "Intelligent recommendations and analysis"
+    ],
+    "starterHighlights": [
+      "30 AI conversations per day",
+      "10 meal photos per day",
+      "20 meal suggestions per day",
+      "1 AI plan import / month",
+      "Dedicated nutrition assistant"
+    ],
+    "proHighlights": [
+      "Highest AI Quota: 100 conversations/day (10x more than Free)",
+      "Highest Visual Scan: 30 dish photos per day",
+      "30 daily suggestions based on schedule and goals",
+      "10 monthly plan and consultation imports",
+      "Priority speed and detailed macronutrient analysis"
+    ],
+    "freeSummary": "10 chats/day • 3 photos/day",
+    "starterSummary": "30 chats/day • 10 photos/day",
+    "proSummary": "Highest • 100 chats • 30 photos/day",
+    "quotaRemaining": "remaining today"
   }
 }

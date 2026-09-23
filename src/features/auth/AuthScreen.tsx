@@ -12,7 +12,7 @@ interface AuthScreenProps {
 }
 
 export const AuthScreen: React.FC<AuthScreenProps> = ({ currentLang, onLanguageChange }) => {
-  const { isConfigured, signInWithGoogle, signInWithEmail, registerWithEmail } = useAuth();
+  const { isConfigured, signInWithGoogle, signInWithEmail, registerWithEmail, continueAsGuest } = useAuth();
   const [mode, setMode] = useState<'signin' | 'signup'>('signin');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -265,6 +265,16 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ currentLang, onLanguageC
               <span>{mode === 'signin' ? t.auth.signIn : t.auth.signUp}</span>
             </button>
           </form>
+
+          <div className="pt-2 border-t border-neutral-800 text-center">
+            <button
+              type="button"
+              onClick={continueAsGuest}
+              className="w-full py-2 px-3 rounded-xl bg-neutral-950 hover:bg-neutral-800/80 border border-neutral-800 text-neutral-300 hover:text-white text-xs font-medium transition-colors cursor-pointer"
+            >
+              {t.auth.continueAsGuest}
+            </button>
+          </div>
         </div>
       </div>
 

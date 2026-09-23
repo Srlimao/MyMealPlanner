@@ -7,10 +7,11 @@ import {
 } from './types';
 import { GeminiModelId } from '../../shared/types/settings';
 import { jsonDbService } from '../../shared/services/jsonDbService';
+import { getLocalDateString } from '../../shared/utils/dateUtils';
 
 class SubscriptionService {
   private getTodayStr(): string {
-    return new Date().toISOString().split('T')[0];
+    return getLocalDateString();
   }
 
   private getCurrentMonthStr(): string {

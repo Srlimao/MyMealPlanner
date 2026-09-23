@@ -75,13 +75,15 @@ export const AccountSettingsCard: React.FC<AccountSettingsCardProps> = ({ lang, 
             <Sparkles className="w-4 h-4 text-neutral-400 shrink-0" />
           )}
           <div>
-            <span className="font-semibold text-neutral-200">Plano {tierConfig.name}</span>
+            <span className="font-semibold text-neutral-200">
+              {t.subscription.planLabel} {tier === 'free' ? t.subscription.freeName : tierConfig.name}
+            </span>
             <p className="text-[10px] text-neutral-400">
               {tier === 'free'
-                ? '10 chats/dia • 3 fotos/dia'
+                ? t.subscription.freeSummary
                 : tier === 'starter'
-                ? '30 chats/dia • 10 fotos/dia'
-                : 'Ilimitado • Gemini 3.8 Flash'}
+                ? t.subscription.starterSummary
+                : t.subscription.proSummary}
             </p>
           </div>
         </div>
@@ -90,7 +92,7 @@ export const AccountSettingsCard: React.FC<AccountSettingsCardProps> = ({ lang, 
           onClick={openTierModal}
           className="px-2.5 py-1 rounded-md text-[11px] font-semibold bg-emerald-500/10 text-emerald-400 hover:bg-emerald-500/20 border border-emerald-500/30 transition-colors cursor-pointer"
         >
-          Alterar Plano
+          {t.subscription.changePlan}
         </button>
       </div>
 

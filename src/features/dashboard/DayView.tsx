@@ -1,12 +1,13 @@
 import React from 'react';
 import { ChevronLeft, ChevronRight, Plus, UtensilsCrossed, Calendar } from 'lucide-react';
-import { DailyLog, NutritionPlan, MealType } from '../../shared/types/nutrition';
+import { DailyLog, NutritionPlan, MealType, MealEntry } from '../../shared/types/nutrition';
 import { UserSettings } from '../../shared/types/settings';
 import { TRANSLATIONS } from '../../shared/i18n/translations';
 import { MacroProgressBars } from './MacroProgressBars';
 import { HabitTrackers } from './HabitTrackers';
 import { MealCard } from './MealCard';
 import { NextMealCard } from '../advisor/NextMealCard';
+import { addDays, isToday } from '../../shared/utils/dateUtils';
 
 interface DayViewProps {
   currentDate: string; // YYYY-MM-DD
@@ -17,6 +18,7 @@ interface DayViewProps {
   settings: UserSettings;
   onOpenQuickLog: () => void;
   onQuickLogSuggestion: (suggestionText: string, mealType: MealType) => void;
+  onEditMeal?: (meal: MealEntry) => void;
 }
 
 export const DayView: React.FC<DayViewProps> = ({
@@ -28,19 +30,16 @@ export const DayView: React.FC<DayViewProps> = ({
   settings,
   onOpenQuickLog,
   onQuickLogSuggestion,
+  onEditMeal,
 }) => {
   const t = TRANSLATIONS[settings.language];
 
   const handlePrevDay = () => {
-    const d = new Date(currentDate);
-    d.setDate(d.getDate() - 1);
-    onSelectDate(d.toISOString().split('T')[0]);
+    onSelectDate(addDays(currentDate, -1));
   };
 
   const handleNextDay = () => {
-    const d = new Date(currentDate);
-    d.setDate(d.getDate() + 1);
-    onSelectDate(d.toISOString().split('T')[0]);
+    onSelectDate(addDays(currentDate, 1));
   };
 
   const handleDeleteMeal = (mealId: string) => {
@@ -74,7 +73,7 @@ export const DayView: React.FC<DayViewProps> = ({
     { adhered: 0, totalMainMeals: 0 }
   );
 
-  const isToday = new Date().toISOString().split('T')[0] === currentDate;
+  const isCurrentDayToday = isToday(currentDate);
 
   return (
     <div className="space-y-4 sm:space-y-5 pb-20">
@@ -91,7 +90,7 @@ export const DayView: React.FC<DayViewProps> = ({
         <div className="flex items-center gap-2">
           <Calendar className="w-4 h-4 text-emerald-400" />
           <span className="text-xs sm:text-sm font-bold text-neutral-100 font-mono">
-            {isToday ? `${t.dashboard.today}, ` : ''}
+            {isCurrentDayToday ? `${t.dashboard.today}, ` : ''}
             {currentDate}
           </span>
         </div>
@@ -115,8 +114,8 @@ export const DayView: React.FC<DayViewProps> = ({
         </div>
       </div>
 
-      {/* AI Next Meal Suggestion Card */}
-      {isToday && (
+      {/* AI NextMeal Suggestion Card */}
+      {isCurrentDayToday && (
         <NextMealCard
           todayLog={dailyLog}
           nutritionPlan={nutritionPlan}
@@ -143,6 +142,7 @@ export const DayView: React.FC<DayViewProps> = ({
           })
         }
         plateAdherenceCount={plateAdherence}
+        targets={settings.targets}
         lang={settings.language}
       />
 
@@ -180,6 +180,7 @@ export const DayView: React.FC<DayViewProps> = ({
                 key={meal.id}
                 meal={meal}
                 onDelete={handleDeleteMeal}
+                onEdit={onEditMeal}
                 lang={settings.language}
               />
             ))}

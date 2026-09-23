@@ -37,11 +37,7 @@ export const PlanAiImportModal: React.FC<PlanAiImportModalProps> = ({
     }
 
     if (!inputText.trim()) {
-      setError(
-        lang === 'en'
-          ? 'Please paste consultation notes or dietary text first.'
-          : 'Por favor, cole as anotações ou texto da consulta nutricional primeiro.'
-      );
+      setError(t.plan.aiImportPasteNotes);
       return;
     }
 
@@ -54,12 +50,7 @@ export const PlanAiImportModal: React.FC<PlanAiImportModalProps> = ({
       onClose();
     } catch (err: any) {
       console.error('AI plan parsing error:', err);
-      setError(
-        err?.message ||
-          (lang === 'en'
-            ? 'Failed to parse text. Please check your Gemini API key in Settings and try again.'
-            : 'Falha ao analisar o plano. Verifique a chave de API Gemini nas Configurações.')
-      );
+      setError(err?.message || t.plan.aiImportPasteNotes);
     } finally {
       setIsLoading(false);
     }
@@ -75,12 +66,10 @@ export const PlanAiImportModal: React.FC<PlanAiImportModalProps> = ({
             </div>
             <div>
               <h3 className="text-sm font-bold text-neutral-100">
-                {lang === 'en' ? 'Import Plan with AI' : 'Importar Plano com IA'}
+                {t.plan.aiImportModalTitle}
               </h3>
               <p className="text-[11px] text-neutral-400">
-                {lang === 'en'
-                  ? 'Paste raw consultation notes or PDF text to auto-populate sections'
-                  : 'Cole as anotações ou PDF da nutricionista para preencher as secções'}
+                {t.plan.aiImportModalSubtitle}
               </p>
             </div>
           </div>
@@ -96,16 +85,14 @@ export const PlanAiImportModal: React.FC<PlanAiImportModalProps> = ({
         {!planCheck.allowed && (
           <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-between gap-2 text-xs">
             <span className="text-amber-300 text-[11px]">
-              {lang === 'en'
-                ? 'AI plan import requires Starter or Pro tier.'
-                : 'Importação de planos com IA requer plano Starter ou Pro.'}
+              {t.plan.aiImportRequiresTier}
             </span>
             <button
               type="button"
               onClick={openTierModal}
               className="px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-500 hover:bg-emerald-400 text-neutral-950 transition-colors cursor-pointer shrink-0"
             >
-              {lang === 'en' ? 'Upgrade' : 'Mudar Plano'}
+              {t.plan.upgrade}
             </button>
           </div>
         )}
@@ -119,18 +106,14 @@ export const PlanAiImportModal: React.FC<PlanAiImportModalProps> = ({
 
         <div className="space-y-1.5">
           <label className="text-xs font-medium text-neutral-300">
-            {lang === 'en' ? 'Consultation Text / Notes' : 'Texto da Consulta / Prescrição'}
+            {t.plan.consultationNotes}
           </label>
           <textarea
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
             disabled={isLoading}
             rows={8}
-            placeholder={
-              lang === 'en'
-                ? 'Paste the nutritionist message, email, or prescription text here...'
-                : 'Cole aqui o texto, email ou notas enviadas pela nutricionista...'
-            }
+            placeholder={t.plan.aiImportPlaceholder}
             className="w-full bg-neutral-950 border border-neutral-800 focus:border-emerald-500 rounded-xl p-3 text-xs text-neutral-200 placeholder:text-neutral-600 focus:outline-none transition-colors"
           />
         </div>
@@ -153,12 +136,12 @@ export const PlanAiImportModal: React.FC<PlanAiImportModalProps> = ({
             {isLoading ? (
               <>
                 <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                <span>{lang === 'en' ? 'Analyzing with Gemini...' : 'A analisar com Gemini...'}</span>
+                <span>{t.plan.aiImportAnalyzing}</span>
               </>
             ) : (
               <>
                 <Sparkles className="w-3.5 h-3.5" />
-                <span>{lang === 'en' ? 'Auto-populate Sections' : 'Preencher Secções com IA'}</span>
+                <span>{t.plan.aiImportBtn}</span>
               </>
             )}
           </button>

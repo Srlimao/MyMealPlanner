@@ -38,7 +38,8 @@
     "target": "meta",
     "proteinShort": "Prot",
     "carbsShort": "Carb",
-    "fatShort": "Gras"
+    "fatShort": "Gras",
+    "overTarget": "por encima"
   },
   "habits": {
     "water": "Agua (2L)",
@@ -54,7 +55,8 @@
     "plateRule": "Regla del Plato",
     "plateAdherence": "Plato Equilibrado (1/2 verduras, 1/4 carbohidratos, 1/4 proteína)",
     "plateSubtitle": "1/2 verduras, 1/4 carbohidratos, 1/4 proteína en comidas completas.",
-    "mainMeals": "principales"
+    "mainMeals": "principales",
+    "max": "máx"
   },
   "advisor": {
     "title": "Asistente Nutricional",
@@ -74,7 +76,8 @@
       "¿Cómo dividir el plato en el almuerzo?"
     ],
     "suggestedOptionPrefix": "Opción sugerida para",
-    "recommendedPlanOption": "Opción recomendada del plan"
+    "recommendedPlanOption": "Opción recomendada del plan",
+    "dailyLimitReached": "Límite diario de conversaciones alcanzado"
   },
   "logger": {
     "quickLogTitle": "Registrar Comida",
@@ -122,7 +125,32 @@
     "commitments": "Compromisos del Nutricionista",
     "option": "Opción",
     "fruitEquivalenciesSubtitle": "1 pieza de fruta equivale a cualquiera de las siguientes opciones:",
-    "filterFruit": "Filtrar fruta..."
+    "filterFruit": "Filtrar fruta...",
+    "planEditor": "Editor del Plan Alimentario",
+    "visualModeSubtitle": "Edición visual organizada por secciones",
+    "markdownModeSubtitle": "Código fuente Markdown directo",
+    "visual": "Visual",
+    "markdown": "Markdown",
+    "aiImport": "Importar IA",
+    "aiImportTitle": "Importar notas de consulta con IA",
+    "aiImportModalTitle": "Importar Plan con IA",
+    "aiImportModalSubtitle": "Pegue las notas de la consulta o PDF del nutricionista para completar las secciones",
+    "mealsAndOptions": "Comidas y Opciones",
+    "commitmentsAndRules": "Compromisos y Reglas",
+    "general": "General",
+    "addFruit": "Añadir Fruta",
+    "noFruitConfigured": "No hay equivalencias de fruta configuradas.",
+    "fruitPlaceholder": "Fruta (ej: Plátano 80g)",
+    "portionPlaceholder": "Porción (ej: 1 unidad)",
+    "noCommitments": "No hay compromisos registrados.",
+    "noRules": "No hay reglas especificadas.",
+    "aiImportPasteNotes": "Por favor pegue las notas o texto de la consulta nutricional primero.",
+    "aiImportPlaceholder": "Pegue aquí el texto, correo o notas enviadas por la nutricionista...",
+    "aiImportRequiresTier": "La importación de planes con IA requiere plan Starter o Pro.",
+    "aiImportBtn": "Rellenar Secciones con IA",
+    "aiImportAnalyzing": "Analizando con Gemini...",
+    "consultationNotes": "Texto de la Consulta / Prescripción",
+    "upgrade": "Cambiar Plan"
   },
   "metrics": {
     "history": "Historial y Métricas",
@@ -213,6 +241,52 @@
     "personalApiKeyNotice": "Su clave API de Gemini se guarda de forma segura y privada en esta cuenta.",
     "apiKeyConfigured": "Clave Gemini configurada",
     "apiKeyMissing": "Clave Gemini no configurada",
-    "configureInSettings": "Configurar en Ajustes"
+    "configureInSettings": "Configurar en Ajustes",
+    "continueAsGuest": "Continuar en Modo Offline / Invitado"
+  },
+  "subscription": {
+    "title": "Planes y Límites de Uso",
+    "subtitle": "Elige el plan ideal para tu rutina alimentaria.",
+    "recommended": "Recomendado",
+    "popular": "Popular",
+    "free": "Gratis",
+    "perMonth": "/mes",
+    "currentPlan": "Plan actual",
+    "changeTo": "Cambiar a",
+    "resetNotice": "Los límites diarios se reinician automáticamente a medianoche (00:00).",
+    "manage": "Gestionar",
+    "changePlan": "Cambiar plan",
+    "planLabel": "Plan",
+    "chatsToday": "Chats hoy",
+    "photosToday": "Fotos hoy",
+    "highest": "Highest",
+    "freeName": "Gratuito",
+    "starterName": "Starter",
+    "proName": "Pro",
+    "freeHighlights": [
+      "10 conversaciones con IA por día",
+      "3 fotos de comidas por día",
+      "Hasta 3 sugerencias de comida/día",
+      "Registro de texto completo",
+      "Recomendaciones y análisis inteligente"
+    ],
+    "starterHighlights": [
+      "30 conversaciones con IA por día",
+      "10 fotos de comidas por día",
+      "20 sugerencias de comida por día",
+      "1 importación de plan de IA / mes",
+      "Asistente nutricional dedicado"
+    ],
+    "proHighlights": [
+      "Highest AI Quota: 100 conversaciones/día (10x más que la versión gratuita)",
+      "Highest Visual Scan: 30 fotos de platos por día",
+      "30 sugerencias diarias basadas en el horario y los objetivos",
+      "10 importaciones mensuales de planes y consultas",
+      "Velocidad prioritaria y análisis detallado de macronutrientes"
+    ],
+    "freeSummary": "10 chats/día • 3 fotos/día",
+    "starterSummary": "30 chats/día • 10 fotos/día",
+    "proSummary": "Highest • 100 chats • 30 fotos/día",
+    "quotaRemaining": "restantes hoy"
   }
 }

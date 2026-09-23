@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { X, Key, Cpu, Check, Eye, EyeOff, Smartphone, Download, Globe } from 'lucide-react';
-import { UserSettings, AVAILABLE_MODELS } from '../types/settings';
+import { UserSettings } from '../types/settings';
 import { TRANSLATIONS } from '../i18n/translations';
 import { SUPPORTED_LANGUAGES } from '../i18n';
 import { AccountSettingsCard } from './AccountSettingsCard';
@@ -115,37 +115,6 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             <p className="text-[11px] text-neutral-500">{t.settings.geminiKeyHint}</p>
           </div>
 
-          {/* Model Selector */}
-          <div className="space-y-2">
-            <label className="text-xs font-semibold text-neutral-300">{t.settings.activeModel}</label>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              {AVAILABLE_MODELS.map((model) => {
-                const isSelected = formData.activeModel === model.id;
-                return (
-                  <button
-                    key={model.id}
-                    type="button"
-                    onClick={() => setFormData({ ...formData, activeModel: model.id })}
-                    className={`flex flex-col text-left p-3 rounded-xl border transition-all ${
-                      isSelected
-                        ? 'border-emerald-500/80 bg-emerald-950/20 text-neutral-100'
-                        : 'border-neutral-800 bg-neutral-950 hover:border-neutral-700 text-neutral-400'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between w-full">
-                      <span className="text-xs font-semibold text-neutral-200">{model.name}</span>
-                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-neutral-800/80 text-emerald-400">
-                        {model.badge}
-                      </span>
-                    </div>
-                    <span className="text-[10px] text-neutral-500 mt-1 leading-tight">
-                      {model.description}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
 
           {/* Auto Fallback Toggle */}
           <div className="flex items-center justify-between bg-neutral-950 p-3.5 rounded-xl border border-neutral-800">

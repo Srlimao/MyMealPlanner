@@ -12,7 +12,9 @@ interface MacroProgressBarsProps {
 
 export const MacroProgressBars: React.FC<MacroProgressBarsProps> = ({ totals, targets, lang = 'pt' }) => {
   const t = getTranslation(lang);
-  const calPercent = Math.min(100, Math.round((totals.calories / targets.calories) * 100)) || 0;
+  const isOverCal = totals.calories > targets.calories;
+  const rawCalPercent = Math.round((totals.calories / targets.calories) * 100) || 0;
+  const calPercent = Math.min(100, rawCalPercent);
   const proPercent = Math.min(100, Math.round((totals.protein / targets.protein) * 100)) || 0;
   const carbPercent = Math.min(100, Math.round((totals.carbs / targets.carbs) * 100)) || 0;
   const fatPercent = Math.min(100, Math.round((totals.fat / targets.fat) * 100)) || 0;
@@ -22,7 +24,7 @@ export const MacroProgressBars: React.FC<MacroProgressBarsProps> = ({ totals, ta
       {/* Calories Overview Banner */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <div className="p-2 rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/20">
+          <div className={`p-2 rounded-xl border ${isOverCal ? 'bg-amber-500/10 text-amber-400 border-amber-500/30' : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'}`}>
             <Flame className="w-4 h-4" />
           </div>
           <div>
@@ -30,7 +32,7 @@ export const MacroProgressBars: React.FC<MacroProgressBarsProps> = ({ totals, ta
               {t.macros.dailyCalories}
             </span>
             <div className="flex items-baseline gap-1.5">
-              <span className="text-xl sm:text-2xl font-bold text-neutral-100 font-mono">
+              <span className={`text-xl sm:text-2xl font-bold font-mono ${isOverCal ? 'text-amber-300' : 'text-neutral-100'}`}>
                 {totals.calories}
               </span>
               <span className="text-xs text-neutral-500 font-mono">/ {targets.calories} kcal</span>
@@ -39,9 +41,15 @@ export const MacroProgressBars: React.FC<MacroProgressBarsProps> = ({ totals, ta
         </div>
 
         <div className="text-right">
-          <span className="text-xs font-bold font-mono text-emerald-400">{calPercent}%</span>
-          <span className="text-[10px] text-neutral-500 block">
-            {Math.max(0, targets.calories - totals.calories)} kcal {t.macros.remaining}
+          <span className={`text-xs font-bold font-mono ${isOverCal ? 'text-amber-400' : 'text-emerald-400'}`}>
+            {rawCalPercent}%
+          </span>
+          <span className="text-[10px] block">
+            {isOverCal ? (
+              <span className="text-amber-400/90 font-medium">+{totals.calories - targets.calories} kcal {t.macros.overTarget}</span>
+            ) : (
+              <span className="text-neutral-500">{targets.calories - totals.calories} kcal {t.macros.remaining}</span>
+            )}
           </span>
         </div>
       </div>
@@ -49,7 +57,11 @@ export const MacroProgressBars: React.FC<MacroProgressBarsProps> = ({ totals, ta
       {/* Main Calories Bar */}
       <div className="w-full bg-neutral-950 h-2.5 rounded-full overflow-hidden border border-neutral-800/80">
         <div
-          className="h-full bg-gradient-to-r from-emerald-500 via-teal-400 to-emerald-300 rounded-full transition-all duration-500"
+          className={`h-full rounded-full transition-all duration-500 ${
+            isOverCal
+              ? 'bg-gradient-to-r from-amber-500 to-rose-500'
+              : 'bg-gradient-to-r from-emerald-500 via-teal-400 to-emerald-300'
+          }`}
           style={{ width: `${calPercent}%` }}
         />
       </div>

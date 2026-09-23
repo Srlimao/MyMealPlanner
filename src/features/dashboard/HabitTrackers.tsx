@@ -1,6 +1,6 @@
 import React from 'react';
 import { Droplet, Plus, Minus, CheckCircle, AlertTriangle, PieChart } from 'lucide-react';
-import { DailyHabits } from '../../shared/types/nutrition';
+import { DailyHabits, DailyTargets } from '../../shared/types/nutrition';
 import { Card } from '../../shared/components/Card';
 import { getTranslation } from '../../shared/i18n';
 
@@ -8,6 +8,7 @@ interface HabitTrackersProps {
   habits: DailyHabits;
   onUpdateHabits: (newHabits: DailyHabits) => void;
   plateAdherenceCount: { adhered: number; totalMainMeals: number };
+  targets?: DailyTargets;
   lang?: string;
 }
 
@@ -15,10 +16,12 @@ export const HabitTrackers: React.FC<HabitTrackersProps> = ({
   habits,
   onUpdateHabits,
   plateAdherenceCount,
+  targets,
   lang = 'pt',
 }) => {
   const t = getTranslation(lang);
-  const waterTarget = 2000;
+  const waterTarget = targets?.waterMl || 2000;
+  const sodaLimit = targets?.maxSoda !== undefined ? targets.maxSoda : 1;
   const waterPercent = Math.min(100, Math.round((habits.waterMl / waterTarget) * 100));
 
   const addWater = (ml: number) => {
@@ -41,7 +44,7 @@ export const HabitTrackers: React.FC<HabitTrackersProps> = ({
             <div>
               <span className="text-[10px] font-semibold text-neutral-400 uppercase">{t.habits.water}</span>
               <div className="text-sm font-bold text-neutral-100 font-mono">
-                {habits.waterMl} <span className="text-xs text-neutral-500 font-normal">/ 2000 ml</span>
+                {habits.waterMl} <span className="text-xs text-neutral-500 font-normal">/ {waterTarget} ml</span>
               </div>
             </div>
           </div>
@@ -86,10 +89,10 @@ export const HabitTrackers: React.FC<HabitTrackersProps> = ({
           <div className="flex items-center gap-2">
             <div
               className={`p-1.5 rounded-lg ${
-                habits.sodaCount > 1 ? 'bg-rose-500/10 text-rose-400' : 'bg-emerald-500/10 text-emerald-400'
+                habits.sodaCount > sodaLimit ? 'bg-rose-500/10 text-rose-400' : 'bg-emerald-500/10 text-emerald-400'
               }`}
             >
-              {habits.sodaCount > 1 ? (
+              {habits.sodaCount > sodaLimit ? (
                 <AlertTriangle className="w-4 h-4" />
               ) : (
                 <CheckCircle className="w-4 h-4" />
@@ -98,14 +101,14 @@ export const HabitTrackers: React.FC<HabitTrackersProps> = ({
             <div>
               <span className="text-[10px] font-semibold text-neutral-400 uppercase">{t.habits.soda}</span>
               <div className="text-sm font-bold text-neutral-100 font-mono">
-                {habits.sodaCount} <span className="text-xs text-neutral-500 font-normal">{t.habits.sodaMax1}</span>
+                {habits.sodaCount} <span className="text-xs text-neutral-500 font-normal">/ {t.habits.max} {sodaLimit}</span>
               </div>
             </div>
           </div>
         </div>
 
         <p className="text-[10px] text-neutral-400">
-          {habits.sodaCount <= 1 ? t.habits.sodaOk : t.habits.sodaExceeded}
+          {habits.sodaCount <= sodaLimit ? t.habits.sodaOk : t.habits.sodaExceeded}
         </p>
 
         {/* Increment / Decrement */}

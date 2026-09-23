@@ -14,6 +14,7 @@ import { geminiService } from '../../shared/services/geminiService';
 import { MarkdownViewer } from '../../shared/components/MarkdownViewer';
 
 import { useSubscription } from '../subscription/SubscriptionContext';
+import { useAuth } from '../auth/AuthContext';
 
 interface NextMealCardProps {
   todayLog: DailyLog | null;
@@ -29,6 +30,8 @@ export const NextMealCard: React.FC<NextMealCardProps> = ({
   onQuickLogSuggestion,
 }) => {
   const { canPerformAction, recordAction, getModelForAction, openTierModal } = useSubscription();
+  const { user } = useAuth();
+  const userName = user?.displayName || user?.email?.split('@')[0] || 'Willian';
   const [loading, setLoading] = useState(false);
   const [suggestion, setSuggestion] = useState<string | null>(null);
   const [modelUsedBadge, setModelUsedBadge] = useState<string | null>(null);
@@ -54,9 +57,10 @@ export const NextMealCard: React.FC<NextMealCardProps> = ({
         currentMealInfo.type,
         todayLog,
         nutritionPlan,
-        settings.targets
+        settings.targets,
+        userName
       );
-      const systemPrompt = buildAdvisorSystemPrompt(nutritionPlan, settings.language);
+      const systemPrompt = buildAdvisorSystemPrompt(nutritionPlan, settings.language, userName);
       const modelToUse = getModelForAction('next_meal', settings.activeModel);
 
       const response = await geminiService.generateContent(

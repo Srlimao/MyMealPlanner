@@ -109,7 +109,7 @@ export const PlanEditor: React.FC<PlanEditorProps> = ({ plan, onSave, onCancel, 
             }`}
           >
             <Utensils className="w-3.5 h-3.5" />
-            <span>{lang === 'en' ? 'Meals & Options' : 'Refeições'}</span>
+            <span>{t.plan.mealsAndOptions}</span>
             <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-full bg-neutral-800 text-neutral-300">
               {localPlan.meals.length}
             </span>
@@ -125,7 +125,7 @@ export const PlanEditor: React.FC<PlanEditorProps> = ({ plan, onSave, onCancel, 
             }`}
           >
             <ShieldCheck className="w-3.5 h-3.5" />
-            <span>{lang === 'en' ? 'Commitments & Rules' : 'Compromissos & Regras'}</span>
+            <span>{t.plan.commitmentsAndRules}</span>
             <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-full bg-neutral-800 text-neutral-300">
               {localPlan.commitments.length}
             </span>
@@ -141,7 +141,7 @@ export const PlanEditor: React.FC<PlanEditorProps> = ({ plan, onSave, onCancel, 
             }`}
           >
             <Apple className="w-3.5 h-3.5" />
-            <span>{lang === 'en' ? 'Fruit Equivalencies' : 'Equivalências de Fruta'}</span>
+            <span>{t.plan.fruitEquivalencies}</span>
             <span className="text-[10px] font-mono px-1.5 py-0.2 rounded-full bg-neutral-800 text-neutral-300">
               {localPlan.fruitEquivalencies.length}
             </span>
@@ -157,7 +157,7 @@ export const PlanEditor: React.FC<PlanEditorProps> = ({ plan, onSave, onCancel, 
             }`}
           >
             <Settings2 className="w-3.5 h-3.5" />
-            <span>{lang === 'en' ? 'General' : 'Geral'}</span>
+            <span>{t.plan.general}</span>
           </button>
         </div>
       )}

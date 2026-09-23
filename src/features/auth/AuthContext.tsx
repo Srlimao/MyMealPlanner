@@ -13,6 +13,7 @@ interface AuthContextValue {
   registerWithEmail: (email: string, pass: string, name?: string) => Promise<void>;
   sendPasswordReset: (email: string) => Promise<void>;
   signOut: () => Promise<void>;
+  continueAsGuest: () => void;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -36,6 +37,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       } catch {
         // ignore
       }
+    }
+
+    // Check for guest mode
+    const isGuest = typeof window !== 'undefined' ? localStorage.getItem('eh_guest_mode') === 'true' : false;
+    if (isGuest) {
+      const guestUser = {
+        uid: 'guest_user',
+        email: 'guest@eatinghelper.local',
+        displayName: 'Convidado',
+        photoURL: null,
+      } as unknown as User;
+      setUser(guestUser);
+      jsonDbService.setUserId('guest_user');
+      setLoading(false);
+      return;
     }
 
     if (!isConfigured) {
@@ -74,9 +90,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     await authService.sendPasswordReset(email);
   };
 
+  const continueAsGuest = () => {
+    const guestUser = {
+      uid: 'guest_user',
+      email: 'guest@eatinghelper.local',
+      displayName: 'Convidado',
+      photoURL: null,
+    } as unknown as User;
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('eh_guest_mode', 'true');
+    }
+    setUser(guestUser);
+    jsonDbService.setUserId('guest_user');
+    setLoading(false);
+  };
+
   const signOut = async () => {
     if (typeof window !== 'undefined') {
       localStorage.removeItem('eh_e2e_user');
+      localStorage.removeItem('eh_guest_mode');
     }
     await authService.signOutUser();
     setUser(null);
@@ -93,6 +125,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       registerWithEmail,
       sendPasswordReset,
       signOut,
+      continueAsGuest,
     }),
     [user, loading, isConfigured]
   );

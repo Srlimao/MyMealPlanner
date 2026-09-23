@@ -1,6 +1,7 @@
 import React from 'react';
 import { ShieldCheck, Plus, Trash2, BookOpen, Droplets, Wine } from 'lucide-react';
 import { Card } from '../../shared/components/Card';
+import { getTranslation } from '../../shared/i18n';
 
 interface PlanCommitmentsEditorProps {
   commitments: string[];
@@ -17,6 +18,7 @@ export const PlanCommitmentsEditor: React.FC<PlanCommitmentsEditorProps> = ({
   onChangeRules,
   lang = 'pt',
 }) => {
+  const t = getTranslation(lang);
 
   const handleAddCommitment = () => {
     onChangeCommitments([...commitments, '']);
@@ -54,7 +56,7 @@ export const PlanCommitmentsEditor: React.FC<PlanCommitmentsEditorProps> = ({
           <div className="flex items-center gap-2 text-emerald-400">
             <ShieldCheck className="w-4 h-4" />
             <h4 className="text-xs font-bold uppercase tracking-wider">
-              {lang === 'en' ? 'Commitments Until Next Consultation' : 'Compromissos até à Próxima Consulta'}
+              {t.plan.commitmentsTitle}
             </h4>
           </div>
           <button
@@ -63,7 +65,7 @@ export const PlanCommitmentsEditor: React.FC<PlanCommitmentsEditorProps> = ({
             className="flex items-center gap-1 text-[11px] text-emerald-400 hover:text-emerald-300 font-semibold cursor-pointer"
           >
             <Plus className="w-3.5 h-3.5" />
-            <span>{lang === 'en' ? 'Add' : 'Adicionar'}</span>
+            <span>{t.logger.addItem}</span>
           </button>
         </div>
 
@@ -90,7 +92,7 @@ export const PlanCommitmentsEditor: React.FC<PlanCommitmentsEditorProps> = ({
 
           {commitments.length === 0 && (
             <p className="text-xs text-neutral-500 italic py-1">
-              {lang === 'en' ? 'No commitments recorded.' : 'Nenhum compromisso registado.'}
+              {t.plan.noCommitments}
             </p>
           )}
         </div>
@@ -104,10 +106,10 @@ export const PlanCommitmentsEditor: React.FC<PlanCommitmentsEditorProps> = ({
           </div>
           <div className="text-xs">
             <span className="text-neutral-400 block font-medium">
-              {lang === 'en' ? 'Daily Water Habit' : 'Consumo de Água'}
+              {t.habits.water}
             </span>
             <span className="font-bold text-neutral-200">
-              {lang === 'en' ? '2.0 Liters Target' : 'Meta de 2.0 Litros / dia'}
+              {t.habits.waterGoal}
             </span>
           </div>
         </div>
@@ -118,10 +120,10 @@ export const PlanCommitmentsEditor: React.FC<PlanCommitmentsEditorProps> = ({
           </div>
           <div className="text-xs">
             <span className="text-neutral-400 block font-medium">
-              {lang === 'en' ? 'Daily Soda Habit' : 'Refrigerante / Cola Zero'}
+              {t.habits.soda}
             </span>
             <span className="font-bold text-neutral-200">
-              {lang === 'en' ? 'Max 1 can / day' : 'Máximo 1 lata / dia'}
+              {t.habits.sodaLimit}
             </span>
           </div>
         </div>
@@ -133,7 +135,7 @@ export const PlanCommitmentsEditor: React.FC<PlanCommitmentsEditorProps> = ({
           <div className="flex items-center gap-2 text-neutral-300">
             <BookOpen className="w-4 h-4 text-emerald-400" />
             <h4 className="text-xs font-bold uppercase tracking-wider">
-              {lang === 'en' ? 'Dietary Principles & General Rules' : 'Regras Gerais & Princípios Nutricionais'}
+              {t.plan.commitmentsAndRules}
             </h4>
           </div>
           <button
@@ -142,7 +144,7 @@ export const PlanCommitmentsEditor: React.FC<PlanCommitmentsEditorProps> = ({
             className="flex items-center gap-1 text-[11px] text-emerald-400 hover:text-emerald-300 font-semibold cursor-pointer"
           >
             <Plus className="w-3.5 h-3.5" />
-            <span>{lang === 'en' ? 'Add' : 'Adicionar'}</span>
+            <span>{t.logger.addItem}</span>
           </button>
         </div>
 
@@ -169,7 +171,7 @@ export const PlanCommitmentsEditor: React.FC<PlanCommitmentsEditorProps> = ({
 
           {rules.length === 0 && (
             <p className="text-xs text-neutral-500 italic py-1">
-              {lang === 'en' ? 'No rules specified.' : 'Nenhuma regra especificada.'}
+              {t.plan.noRules}
             </p>
           )}
         </div>

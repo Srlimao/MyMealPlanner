@@ -5,8 +5,8 @@ import { AuthScreen } from './features/auth/AuthScreen';
 import { AuthenticatedApp } from './AuthenticatedApp';
 import { jsonDbService } from './shared/services/jsonDbService';
 import { AppLanguage } from './shared/types/settings';
-
 import { SubscriptionProvider } from './features/subscription/SubscriptionContext';
+import { ErrorBoundary } from './shared/components/ErrorBoundary';
 
 function AppContent() {
   const { user, loading } = useAuth();
@@ -44,8 +44,10 @@ function AppContent() {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <AppContent />
-    </AuthProvider>
+    <ErrorBoundary>
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
+    </ErrorBoundary>
   );
 }

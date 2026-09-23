@@ -2,6 +2,8 @@ import React from 'react';
 import { X, Sparkles, Check, Zap, Crown } from 'lucide-react';
 import { UserTier, TIER_CONFIGS } from './types';
 import { useSubscription } from './SubscriptionContext';
+import { getTranslation } from '../../shared/i18n';
+import { jsonDbService } from '../../shared/services/jsonDbService';
 
 interface TierManagementModalProps {
   isOpen: boolean;
@@ -15,6 +17,9 @@ export const TierManagementModal: React.FC<TierManagementModalProps> = ({
   const { tier: currentTier, setTier } = useSubscription();
 
   if (!isOpen) return null;
+
+  const lang = jsonDbService.getUserSettings().language || 'pt';
+  const t = getTranslation(lang);
 
   const handleSelectTier = (newTier: UserTier) => {
     setTier(newTier);
@@ -34,10 +39,10 @@ export const TierManagementModal: React.FC<TierManagementModalProps> = ({
             </div>
             <div>
               <h2 className="text-base font-bold text-neutral-100">
-                Planos e Limites de Uso
+                {t.subscription.title}
               </h2>
               <p className="text-xs text-neutral-400">
-                Escolha o plano ideal para a sua rotina alimentar
+                {t.subscription.subtitle}
               </p>
             </div>
           </div>
@@ -56,6 +61,18 @@ export const TierManagementModal: React.FC<TierManagementModalProps> = ({
             const isCurrent = currentTier === tierKey;
             const isPro = tierKey === 'pro';
             const isStarter = tierKey === 'starter';
+            const tierName =
+              tierKey === 'free'
+                ? t.subscription.freeName
+                : tierKey === 'starter'
+                ? t.subscription.starterName
+                : t.subscription.proName;
+            const highlights =
+              tierKey === 'free'
+                ? t.subscription.freeHighlights
+                : tierKey === 'starter'
+                ? t.subscription.starterHighlights
+                : t.subscription.proHighlights;
 
             return (
               <div
@@ -74,20 +91,20 @@ export const TierManagementModal: React.FC<TierManagementModalProps> = ({
                 {isPro && (
                   <div className="absolute -top-2.5 right-4 px-2 py-0.5 rounded-full bg-emerald-500 text-neutral-950 text-[10px] font-bold uppercase tracking-wider shadow-sm flex items-center gap-1">
                     <Crown className="w-3 h-3" />
-                    <span>Recomendado</span>
+                    <span>{t.subscription.recommended}</span>
                   </div>
                 )}
                 {isStarter && !isCurrent && (
                   <div className="absolute -top-2.5 right-4 px-2 py-0.5 rounded-full bg-sky-500 text-neutral-950 text-[10px] font-bold uppercase tracking-wider shadow-sm flex items-center gap-1">
                     <Zap className="w-3 h-3" />
-                    <span>Popular</span>
+                    <span>{t.subscription.popular}</span>
                   </div>
                 )}
 
                 <div>
                   <div className="flex items-center justify-between gap-2 mb-2">
                     <h3 className="text-base font-bold text-neutral-100 flex items-center gap-1.5">
-                      {config.name}
+                      {tierName}
                     </h3>
                     <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-neutral-800 text-neutral-300 font-mono">
                       {config.badge}
@@ -96,16 +113,16 @@ export const TierManagementModal: React.FC<TierManagementModalProps> = ({
 
                   <div className="mb-4">
                     <span className="text-2xl font-black text-neutral-100">
-                      {config.priceMonthly === 0 ? 'Grátis' : `$${config.priceMonthly.toFixed(2)}`}
+                      {config.priceMonthly === 0 ? t.subscription.free : `$${config.priceMonthly.toFixed(2)}`}
                     </span>
                     {config.priceMonthly > 0 && (
-                      <span className="text-xs text-neutral-400 font-medium ml-1">/mês</span>
+                      <span className="text-xs text-neutral-400 font-medium ml-1">{t.subscription.perMonth}</span>
                     )}
                   </div>
 
                   {/* Highlights list */}
                   <ul className="space-y-2.5 mb-6 text-xs text-neutral-300">
-                    {config.highlights.map((item, idx) => (
+                    {highlights.map((item, idx) => (
                       <li key={idx} className="flex items-start gap-2">
                         <Check className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
                         <span className="leading-tight">{item}</span>
@@ -132,10 +149,10 @@ export const TierManagementModal: React.FC<TierManagementModalProps> = ({
                   {isCurrent ? (
                     <>
                       <Check className="w-3.5 h-3.5" />
-                      <span>Plano Atual</span>
+                      <span>{t.subscription.currentPlan}</span>
                     </>
                   ) : (
-                    <span>Mudar para {config.name}</span>
+                    <span>{t.subscription.changeTo} {tierName}</span>
                   )}
                 </button>
               </div>
@@ -145,7 +162,7 @@ export const TierManagementModal: React.FC<TierManagementModalProps> = ({
 
         {/* Footer info note */}
         <div className="px-5 py-3 border-t border-neutral-800/80 bg-neutral-950/60 text-[11px] text-neutral-400 text-center shrink-0">
-          Limites diários reiniciam automaticamente à meia-noite (00:00).
+          {t.subscription.resetNotice}
         </div>
       </div>
     </div>

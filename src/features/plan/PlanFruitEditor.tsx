@@ -1,6 +1,7 @@
 import React from 'react';
 import { Apple, Plus, Trash2 } from 'lucide-react';
 import { Card } from '../../shared/components/Card';
+import { getTranslation } from '../../shared/i18n';
 
 interface PlanFruitEditorProps {
   fruitEquivalencies: Array<{ fruit: string; portion: string }>;
@@ -13,6 +14,7 @@ export const PlanFruitEditor: React.FC<PlanFruitEditorProps> = ({
   onChangeFruitEquivalencies,
   lang = 'pt',
 }) => {
+  const t = getTranslation(lang);
 
   const handleAdd = () => {
     onChangeFruitEquivalencies([
@@ -38,7 +40,7 @@ export const PlanFruitEditor: React.FC<PlanFruitEditorProps> = ({
           <div className="flex items-center gap-2">
             <Apple className="w-4 h-4 text-amber-400" />
             <h4 className="text-sm font-bold text-neutral-100">
-              {lang === 'en' ? 'Fruit Equivalencies List' : 'Lista de Equivalências de Fruta'}
+              {t.plan.fruitEquivalencies}
             </h4>
           </div>
           <button
@@ -47,14 +49,12 @@ export const PlanFruitEditor: React.FC<PlanFruitEditorProps> = ({
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-500/15 hover:bg-amber-500/25 text-amber-300 border border-amber-500/30 text-xs font-semibold transition-all cursor-pointer"
           >
             <Plus className="w-3.5 h-3.5" />
-            <span>{lang === 'en' ? 'Add Fruit' : 'Adicionar Fruta'}</span>
+            <span>{t.plan.addFruit}</span>
           </button>
         </div>
 
         <p className="text-xs text-neutral-400">
-          {lang === 'en'
-            ? 'Each entry represents the equivalent of 1 piece of fruit prescribed by your nutritionist.'
-            : 'Cada entrada representa a porção equivalente a 1 peça de fruta prescrita pela nutricionista.'}
+          {t.plan.fruitEquivalenciesSubtitle}
         </p>
 
         <div className="space-y-2 pt-1">
@@ -68,7 +68,7 @@ export const PlanFruitEditor: React.FC<PlanFruitEditorProps> = ({
                   type="text"
                   value={item.fruit}
                   onChange={(e) => handleUpdate(idx, 'fruit', e.target.value)}
-                  placeholder={lang === 'en' ? 'Fruit name (e.g. Banana 80g)' : 'Fruta (ex: Banana (80g))'}
+                  placeholder={t.plan.fruitPlaceholder}
                   className="w-full bg-neutral-900 border border-neutral-800 rounded-lg px-2.5 py-1.5 text-xs text-neutral-200 font-semibold focus:outline-none focus:border-amber-500"
                 />
               </div>
@@ -78,18 +78,14 @@ export const PlanFruitEditor: React.FC<PlanFruitEditorProps> = ({
                   type="text"
                   value={item.portion}
                   onChange={(e) => handleUpdate(idx, 'portion', e.target.value)}
-                  placeholder={
-                    lang === 'en'
-                      ? 'Portion size (e.g. 1 small unit or 1/2 Ecuador banana)'
-                      : 'Porção (ex: 1 unidade pequena ou 1/2 banana equador)'
-                  }
+                  placeholder={t.plan.portionPlaceholder}
                   className="w-full bg-neutral-900 border border-neutral-800 rounded-lg px-2.5 py-1.5 text-xs text-neutral-300 focus:outline-none focus:border-amber-500"
                 />
                 <button
                   type="button"
                   onClick={() => handleRemove(idx)}
                   className="p-1.5 text-neutral-500 hover:text-rose-400 transition-colors cursor-pointer shrink-0"
-                  title={lang === 'en' ? 'Delete' : 'Eliminar'}
+                  title={t.common.delete}
                 >
                   <Trash2 className="w-3.5 h-3.5" />
                 </button>
@@ -99,7 +95,7 @@ export const PlanFruitEditor: React.FC<PlanFruitEditorProps> = ({
 
           {fruitEquivalencies.length === 0 && (
             <p className="text-xs text-neutral-500 italic py-2 text-center">
-              {lang === 'en' ? 'No fruit equivalencies configured.' : 'Nenhuma equivalência de fruta configurada.'}
+              {t.plan.noFruitConfigured}
             </p>
           )}
         </div>

@@ -10,4 +10,15 @@ export default defineConfig({
     port: 5173,
     host: true,
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'vendor-react': ['react', 'react-dom'],
+          'vendor-firebase': ['firebase/app', 'firebase/auth'],
+          'vendor-icons': ['lucide-react'],
+        },
+      },
+    },
+  },
 });
