@@ -109,6 +109,7 @@
   "plan": {
     "title": "Plan Nutricional",
     "fruitEquivalencies": "Equivalencias de Fruta",
+    "editPlan": "Editar Plan",
     "editMarkdown": "Editar Markdown",
     "markdownEditorTitle": "Editor del Plan Nutricional (Markdown)",
     "markdownPlaceholder": "Escribe o pega el markdown del plan nutricional aquí...",

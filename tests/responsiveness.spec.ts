@@ -118,4 +118,63 @@ test.describe('Eating Helper - Responsive Design & Overflow Verification', () =>
     });
     expect(isOverflowing).toBe(false);
   });
+
+  test('should open Plan Editor, switch section tabs, toggle markdown sync, and avoid horizontal overflow', async ({ page }) => {
+    // Navigate to Plan tab
+    const mobileNav = page.locator('nav');
+    const isMobileNavVisible = await mobileNav.isVisible();
+    if (isMobileNavVisible) {
+      await page.locator('nav button:has-text("Plano"), nav button:has-text("Plan")').click();
+    } else {
+      await page.locator('button:has-text("Plano"), button:has-text("Plan")').first().click();
+    }
+    await page.waitForTimeout(250);
+
+    // Open Plan Editor
+    await page.locator('button:has-text("Editar Plano"), button:has-text("Edit Plan"), button:has-text("Editar Markdown")').click();
+
+    // Verify Plan Editor header
+    await expect(page.locator('h3:has-text("Editor do Plano Alimentar"), h3:has-text("Plan Editor")')).toBeVisible();
+
+    // Check no overflow on visual tabs
+    let isOverflowing = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
+    expect(isOverflowing).toBe(false);
+
+    // Switch to Commitments & Rules tab
+    await page.locator('button:has-text("Compromissos"), button:has-text("Commitments")').click();
+    await page.waitForTimeout(100);
+    isOverflowing = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
+    expect(isOverflowing).toBe(false);
+
+    // Switch to Fruit Equivalencies tab
+    await page.locator('button:has-text("Equivalências de Fruta"), button:has-text("Fruit Equivalencies")').click();
+    await page.waitForTimeout(100);
+    isOverflowing = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
+    expect(isOverflowing).toBe(false);
+
+    // Switch to Markdown mode
+    await page.locator('button:has-text("Markdown")').click();
+    await page.waitForTimeout(100);
+    isOverflowing = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
+    expect(isOverflowing).toBe(false);
+
+    // Switch back to Visual mode
+    await page.locator('button:has-text("Visual")').click();
+    await page.waitForTimeout(100);
+    isOverflowing = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
+    expect(isOverflowing).toBe(false);
+
+    // Open AI Import Modal
+    await page.locator('button:has-text("Importar IA"), button:has-text("AI Import")').click();
+    const modalTitle = page.locator('h3:has-text("Importar Plano com IA"), h3:has-text("Import Plan with AI")');
+    await expect(modalTitle).toBeVisible();
+    isOverflowing = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth);
+    expect(isOverflowing).toBe(false);
+
+    // Close AI modal
+    await page.locator('button:has-text("Cancelar"), button:has-text("Cancel")').first().click();
+
+    // Close editor and go back to viewer
+    await page.locator('button:has-text("Voltar"), button:has-text("Back")').click();
+  });
 });

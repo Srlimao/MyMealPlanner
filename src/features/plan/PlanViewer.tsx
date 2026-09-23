@@ -16,12 +16,8 @@ export const PlanViewer: React.FC<PlanViewerProps> = ({ plan, onUpdatePlan, lang
   const [mode, setMode] = useState<'view' | 'edit' | 'equivalencies'>('view');
   const t = getTranslation(lang);
 
-  const handleSaveMarkdown = (newMarkdown: string) => {
-    onUpdatePlan({
-      ...plan,
-      markdownContent: newMarkdown,
-      updatedAt: new Date().toISOString(),
-    });
+  const handleSavePlan = (updatedPlan: NutritionPlan) => {
+    onUpdatePlan(updatedPlan);
     setMode('view');
   };
 
@@ -29,7 +25,7 @@ export const PlanViewer: React.FC<PlanViewerProps> = ({ plan, onUpdatePlan, lang
     return (
       <PlanEditor
         plan={plan}
-        onSave={handleSaveMarkdown}
+        onSave={handleSavePlan}
         onCancel={() => setMode('view')}
         lang={lang}
       />
@@ -68,7 +64,7 @@ export const PlanViewer: React.FC<PlanViewerProps> = ({ plan, onUpdatePlan, lang
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-neutral-900 border border-neutral-800 hover:border-neutral-700 text-neutral-300 text-xs font-semibold transition-all cursor-pointer"
           >
             <Edit3 className="w-3.5 h-3.5 text-emerald-400" />
-            <span>{t.plan.editMarkdown}</span>
+            <span>{t.plan.editPlan || t.plan.editMarkdown}</span>
           </button>
         </div>
       </div>
